@@ -200,3 +200,17 @@ export type {
   SupportGrantInput,
   SupportGrantState,
 } from "./support-access.js";
+// T020 generic tenant-aware repository framework.
+export { createTenantRepository, validateTenantScope } from "./tenant-repository.js";
+export type {
+  TenantEntityPersistence,
+  TenantListCursor,
+  TenantListInput,
+  TenantListPage,
+  TenantOwnedRow,
+  TenantRepository,
+  TenantRepositoryOptions,
+  TenantScope,
+} from "./tenant-repository.js";
+export { TENANT_REPOSITORY_ERROR_CODE, TenantRepositoryError } from "./tenant-repository-errors.js";
+export type { TenantRepositoryErrorCode } from "./tenant-repository-errors.js";
