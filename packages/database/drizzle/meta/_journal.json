@@ -15,6 +15,13 @@
       "when": 1786027461324,
       "tag": "0001_t012_organizations_workspaces_memberships",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786030408297,
+      "tag": "0002_t014_sessions_mfa_security_events",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,27 @@
 /** Better Auth core schema owned by task T011. */
-import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import {
+  boolean,
+  check,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { createdAt, primaryId, updatedAt } from "./columns.js";
+
+/**
+ * Session security extensions owned by task T014 (sessions.md: "T011 MUST NOT
+ * add organization selection, impersonation, MFA state, risk state, or
+ * session-family state; T014 owns those extensions"). Kept in this file so they
+ * remain columns on the single documented `sessions` table rather than an
+ * undocumented side table.
+ */
+export const SESSION_RISK_LEVELS = ["normal", "elevated", "high"] as const;
+export type SessionRiskLevel = (typeof SESSION_RISK_LEVELS)[number];
 
 export const users = pgTable(
   "users",
@@ -61,11 +81,22 @@ export const sessions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
+    // T014 session security extensions.
+    activeOrganizationId: uuid("active_organization_id"),
+    impersonatedByUserId: uuid("impersonated_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    mfaSatisfied: boolean("mfa_satisfied").notNull().default(false),
+    riskLevel: text("risk_level", { enum: SESSION_RISK_LEVELS }).notNull().default("normal"),
+    sessionFamilyId: uuid("session_family_id"),
   },
   (table) => [
     uniqueIndex("sessions_token_unique").on(table.token),
     index("sessions_user_id_idx").on(table.userId),
     index("sessions_expires_at_idx").on(table.expiresAt),
+    index("sessions_active_organization_id_idx").on(table.activeOrganizationId),
+    index("sessions_session_family_id_idx").on(table.sessionFamilyId),
+    check("sessions_risk_level_check", sql`${table.riskLevel} in ('normal', 'elevated', 'high')`),
   ],
 );
 
