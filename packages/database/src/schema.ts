@@ -1,9 +1,11 @@
 /** Drizzle schema aggregation point for approved physical tables. */
 import { authenticationVerifications, sessions, userIdentities, users } from "./auth-schema.js";
 import { memberships, organizations, workspaces } from "./tenancy-schema.js";
+import { authenticationEvents, securityEvents } from "./session-security-schema.js";
 
 export { authenticationVerifications, sessions, userIdentities, users } from "./auth-schema.js";
 export { memberships, organizations, workspaces } from "./tenancy-schema.js";
+export { authenticationEvents, securityEvents } from "./session-security-schema.js";
 
 export const schema = {
   users,
@@ -13,4 +15,6 @@ export const schema = {
   organizations,
   workspaces,
   memberships,
+  authenticationEvents,
+  securityEvents,
 } as const;

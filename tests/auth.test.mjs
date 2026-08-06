@@ -63,9 +63,11 @@ function captureAuth(overrides = {}) {
 
 test("schema: Better Auth tables remain present in the aggregated documented schema", () => {
   assert.deepEqual(Object.keys(schema).sort(), [
+    "authenticationEvents",
     "authenticationVerifications",
     "memberships",
     "organizations",
+    "securityEvents",
     "sessions",
     "userIdentities",
     "users",
@@ -307,7 +309,8 @@ test("specifications: physical registry and table authorities match the implemen
   for (const [table, count, path] of [
     ["users", 7, "users.md"],
     ["user_identities", 13, "user-identities.md"],
-    ["sessions", 8, "sessions.md"],
+    // sessions extended from 8 to 13 columns by task T014 (sessions.md line 44).
+    ["sessions", 13, "sessions.md"],
     ["authentication_verifications", 6, "authentication-verifications.md"],
   ]) {
     const expectedRow = `| \`identity-and-tenancy\` | \`${table}\` | ${count} | \`docs/07-data-architecture/tables/identity-and-tenancy/${path}\` |`;
@@ -316,7 +319,7 @@ test("specifications: physical registry and table authorities match the implemen
 
   assert.equal(Object.keys(tableColumns(users)).length, 7);
   assert.equal(Object.keys(tableColumns(userIdentities)).length, 13);
-  assert.equal(Object.keys(tableColumns(sessions)).length, 8);
+  assert.equal(Object.keys(tableColumns(sessions)).length, 13);
   assert.equal(Object.keys(tableColumns(authenticationVerifications)).length, 6);
   assert.match(usersSpec, /global Better Auth user identity/);
   assert.match(identitiesSpec, /user_identities_provider_account_unique/);

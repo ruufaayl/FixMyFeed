@@ -186,6 +186,11 @@ This document is the implementation authority for Table Specification — Sessio
 | `ip_address` | text | Yes | Request IP when available; sensitive operational data. |
 | `user_agent` | text | Yes | Request user-agent when available. |
 | `user_id` | UUIDv7 | No | References `users.id`; restrictive delete. |
+| `active_organization_id` | UUIDv7 | Yes | Selected organization for the session (T014); application-scoped reference. |
+| `impersonated_by_user_id` | UUIDv7 | Yes | Support/admin impersonating actor (T014); references `users.id`, nullify on delete. |
+| `mfa_satisfied` | boolean | No | Whether MFA is satisfied for this session (T014); defaults false. |
+| `risk_level` | text | No | Session risk state (T014); one of normal, elevated, high; defaults normal. |
+| `session_family_id` | UUIDv7 | Yes | Session-family lineage for rotation/revocation (T014). |
 
 ## Constraints and Indexes
 

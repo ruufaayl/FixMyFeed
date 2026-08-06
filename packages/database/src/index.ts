@@ -92,3 +92,26 @@ export type {
 } from "./tenancy-repository.js";
 export { authAdapterSchema, createAuthDatabaseAdapter } from "./auth-adapter.js";
 export type { AuthDatabaseAdapter } from "./auth-adapter.js";
+// T014 session security extensions and event tables.
+export { SESSION_RISK_LEVELS } from "./auth-schema.js";
+export type { SessionRiskLevel } from "./auth-schema.js";
+export {
+  AUTHENTICATION_EVENT_OUTCOMES,
+  AUTHENTICATION_EVENT_TYPES,
+  SECURITY_EVENT_SEVERITIES,
+  SECURITY_EVENT_STATUSES,
+  SECURITY_EVENT_TYPES,
+  authenticationEvents,
+  securityEvents,
+} from "./session-security-schema.js";
+export type {
+  AuthenticationEvent,
+  AuthenticationEventOutcome,
+  AuthenticationEventType,
+  NewAuthenticationEvent,
+  NewSecurityEvent,
+  SecurityEvent,
+  SecurityEventSeverity,
+  SecurityEventStatus,
+  SecurityEventType,
+} from "./session-security-schema.js";
