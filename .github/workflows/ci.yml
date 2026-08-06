@@ -1,0 +1,75 @@
+name: CI
+
+# Repository quality gates (task T004). Reproducible locally per
+# docs/20-devops-sre-and-platform-engineering/platform-reference.md
+# ("CI uses GitHub Actions or an equivalent repository-native runner and must
+# be reproducible locally"):
+#
+#   pnpm install --frozen-lockfile
+#   pnpm run format:check
+#   pnpm run lint
+#   pnpm run typecheck
+#   node --test tests/boundaries.test.mjs tests/tooling.test.mjs tests/config.test.mjs tests/traceability.test.mjs
+#   pnpm run check:traceability
+#
+# The test files are listed explicitly (not `pnpm run test`) so CI exercises
+# every test file present in tests/, independent of which ones the shared
+# `test` script wires in — see the T004 completion report for why the shared
+# script is left untouched. T002 (test harnesses) is expected to consolidate
+# this into `pnpm run test` once its runner lands; update this list then.
+#
+# No secrets, external services, or deployment: install, build, lint, and test
+# only. Nothing in this job can produce a production or irreversible side
+# effect (AGENTS.md Forbidden Actions).
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gates:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10.32.1"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm run format:check
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Typecheck (also builds packages, e.g. packages/config/dist)
+        run: pnpm run typecheck
+
+      - name: Test
+        run: node --test tests/boundaries.test.mjs tests/tooling.test.mjs tests/config.test.mjs tests/traceability.test.mjs
+
+      - name: Generated traceability check
+        run: pnpm run check:traceability

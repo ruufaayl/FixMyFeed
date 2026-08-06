@@ -15,12 +15,12 @@
 
 ## Tooling selected (all open-source; satisfies NFR-001/NFR-002)
 
-| Gate | Tool |
-|---|---|
-| Formatting | Prettier 3 (`.prettierrc.json`, `.prettierignore`, `.editorconfig`) |
-| Linting | ESLint 9 flat config + typescript-eslint 8 (`eslint.config.mjs`), `eslint-config-prettier` to avoid rule conflicts |
-| Type checking | `tsc -b` (reused from T000) |
-| Commit hooks | `simple-git-hooks` (pre-commit → `lint-staged`; pre-push → `typecheck` + `test`) |
+| Gate          | Tool                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Formatting    | Prettier 3 (`.prettierrc.json`, `.prettierignore`, `.editorconfig`)                                                |
+| Linting       | ESLint 9 flat config + typescript-eslint 8 (`eslint.config.mjs`), `eslint-config-prettier` to avoid rule conflicts |
+| Type checking | `tsc -b` (reused from T000)                                                                                        |
+| Commit hooks  | `simple-git-hooks` (pre-commit → `lint-staged`; pre-push → `typecheck` + `test`)                                   |
 
 Rationale: `simple-git-hooks` + `lint-staged` is lighter and more portable than Husky (config lives in `package.json`, no committed shell wrappers). typescript-eslint is configured with the syntactic `recommended` set; type-checked rules are deferred (see Known limitations).
 

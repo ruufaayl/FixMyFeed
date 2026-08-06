@@ -16,6 +16,9 @@ export default tseslint.config(
       "**/*.tsbuildinfo",
       "feed-doctor-implementation-specifications-v1.0.0/**",
       "feed-doctor-specifications-foundation-v0.1.0/**",
+      // Git worktrees for parallel agent branches (e.g. Codex's isolated task
+      // checkouts) — never linted or read by this repository's tooling.
+      ".worktrees/**",
     ],
   },
   js.configs.recommended,

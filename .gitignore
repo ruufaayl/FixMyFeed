@@ -2,6 +2,10 @@
 node_modules/
 .pnpm-store/
 
+# Git worktrees for parallel agent branches (e.g. Codex's isolated task
+# checkouts). Never tracked, linted, or formatted by this repository's tooling.
+.worktrees/
+
 # Build output
 dist/
 build/
