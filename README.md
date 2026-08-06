@@ -1,59 +1,77 @@
+<div align="center">
+
 # FixMyFeed
 
-Multi-tenant SaaS for Shopify, WooCommerce, file-feed, and Google Merchant Center
-product-feed **diagnostics and repair**. (Previously code-named "Feed Doctor" —
-that name still appears throughout the specification documents and internal
-identifiers pending a separate rename task.)
+### Fix your product feed. Get approved. Get seen.
 
-## Repository layout
+**FixMyFeed automatically finds and repairs the errors that get your products
+disapproved or buried — across Google, Shopify, and WooCommerce.**
 
-This repository is a controlled-execution monorepo. Work is performed one task at
-a time against the specifications, on a dedicated branch, and merged only after the
-task's acceptance gates pass.
+_🚀 Coming soon._
 
-```
-/                                   ← repository root
-├── apps/                           ← deployable applications (added by T000)
-│   ├── web/                        ← Next.js: public SEO + authenticated app + bounded APIs
-│   ├── worker/                     ← pg-boss durable jobs (imports, diagnostics, repairs, ...)
-│   └── maintenance/                ← recurring scheduler (enqueues work only)
-├── packages/                       ← shared packages (added by T000)
-│   ├── domain/ contracts/ config/ observability/
-│   ├── database/ auth/ connectors/ diagnostics/ repairs/ jobs/
-│   └── analytics/ seo/ ui/ testing/
-└── feed-doctor-implementation-specifications-v1.0.0/
-        feed-doctor-specifications-implementation-v1.0.0/   ← authoritative specifications
-        ├── AGENTS.md               ← controlling agent contract (READ FIRST)
-        ├── AGENT_BOOTSTRAP_PROMPT.md
-        ├── IMPLEMENTATION_BASELINE.md
-        ├── docs/                   ← product, architecture, security, data, API, ... specs
-        └── implementation/         ← epics, tasks, WORKSTREAM_REGISTRY.md
-    feed-doctor-specifications-foundation-v0.1.0/           ← earlier foundation snapshot (reference)
-```
+</div>
 
-## Where to start (agents & engineers)
+---
 
-1. Read [`AGENTS.md`](feed-doctor-implementation-specifications-v1.0.0/feed-doctor-specifications-implementation-v1.0.0/AGENTS.md)
-   — the controlling contract for all implementation work.
-2. Read [`IMPLEMENTATION_BASELINE.md`](feed-doctor-implementation-specifications-v1.0.0/feed-doctor-specifications-implementation-v1.0.0/IMPLEMENTATION_BASELINE.md)
-   — the frozen production stack.
-3. Take the earliest unblocked task from
-   [`implementation/WORKSTREAM_REGISTRY.md`](feed-doctor-implementation-specifications-v1.0.0/feed-doctor-specifications-implementation-v1.0.0/implementation/WORKSTREAM_REGISTRY.md).
-4. Implement **only** that task on its own branch, run the required gates, open one
-   pull request, and stop.
+## Why FixMyFeed
 
-## Stack (frozen baseline)
+Every disapproved product is a sale you never make. Product feeds break quietly:
+a missing GTIN here, a mismatched price there, an image that won't load, a
+landing page that says something different from your feed. The result is
+rejected listings, throttled reach, and hours lost hunting through
+error reports that never tell you _how_ to fix anything.
 
-TypeScript monorepo · Next.js 16 (App Router) · Node.js 24 LTS · PostgreSQL 17+ ·
-Drizzle ORM · Better Auth · pg-boss · S3-compatible object storage · SMTP ·
-PostgreSQL full-text search. Web deployment is Vercel-compatible and Docker-portable;
-durable workers deploy separately from request-serving web processes.
+**FixMyFeed turns that noise into a clear, prioritized to‑do list — and then
+fixes it for you.**
 
-No mandatory paid AI API. Billing, automated writeback, and optional intelligence
-remain feature-flagged until owner credentials and explicit approval are present.
+## What it does
 
-## Branching model
+- **🔎 Diagnose** — Continuously scans your catalog against the rules that
+  matter (structured data, required attributes, identifiers, images, landing
+  pages, and more) and pinpoints exactly what's wrong and why.
+- **🛠️ Repair** — Proposes concrete fixes with a clear preview, applies them
+  safely with your approval, and lets you **roll back** any change. No guesswork,
+  no black boxes.
+- **📈 Monitor** — Watches your feed health over time and alerts you before a
+  small issue becomes a disapproved product.
+- **🗂️ Manage at scale** — Handle one store or a whole portfolio from a single
+  place, with per‑store controls.
 
-- `main` — reviewed, stable.
-- `develop` — integration branch; task branches merge here via PR.
-- `task/T<id>-<slug>` — one task per branch, one PR per task.
+## Works with your stack
+
+| Platform                   |                                              |
+| -------------------------- | -------------------------------------------- |
+| **Shopify**                | Connect your store and sync your catalog     |
+| **WooCommerce**            | Bring your WooCommerce products in           |
+| **Google Merchant Center** | Read issues and resolve them at the source   |
+| **File feeds**             | Upload or link CSV, TSV, XML, and JSON feeds |
+
+## How it works
+
+1. **Connect** your store or feed.
+2. **Scan** — FixMyFeed runs a full diagnostic and ranks issues by impact.
+3. **Review** clear, evidence‑backed findings and recommended fixes.
+4. **Approve & apply** — repairs are previewed, applied safely, and reversible.
+5. **Stay ahead** with ongoing monitoring and alerts.
+
+## Built to be trustworthy
+
+- **Deterministic by design** — findings and repairs are explainable and
+  repeatable, not a mystery model's guess.
+- **Safe writes** — every change is previewed, approved, audited, and reversible.
+- **Privacy‑first** — your catalog data is yours; it isn't sold or used to train
+  external models.
+
+---
+
+<div align="center">
+
+### Want early access?
+
+FixMyFeed is launching soon. ⭐ **Star this repo** to follow along.
+
+<br>
+
+<sub>© FixMyFeed. All rights reserved.</sub>
+
+</div>
