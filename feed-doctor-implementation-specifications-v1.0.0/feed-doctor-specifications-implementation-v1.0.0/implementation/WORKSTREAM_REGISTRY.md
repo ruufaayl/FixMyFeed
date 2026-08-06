@@ -189,7 +189,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T015 | Implement encrypted credential vault | E01 | Verified |
 | T016 | Implement immutable audit logging | E01 | Verified |
 | T017 | Implement support access grants | E01 | Verified |
-| T020 | Implement tenant-aware repositories | E02 | Not Started |
+| T020 | Implement tenant-aware repositories | E02 | In Review |
 | T021 | Implement pg-boss queues and worker runtime | E02 | Not Started |
 | T022 | Implement transactional outbox and event consumers | E02 | Not Started |
 | T023 | Implement object storage abstraction | E02 | Not Started |
