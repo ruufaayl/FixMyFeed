@@ -161,6 +161,15 @@ This document is the implementation authority for Third-Party Dependency Registe
 - AC-004: Failure injection demonstrates deterministic recovery or safe terminal failure.
 - AC-005: Documentation, generated contracts, migrations, tests, and implementation remain mutually consistent.
 
+## Approved Package Inventory
+
+| Package | Purpose and owner | Pinned version line | License | Security advisories and data exposure | Cost model | Fallback and removal plan |
+|---|---|---|---|---|---|---|
+| `drizzle-orm` | Typed PostgreSQL schema/query layer; Feed Doctor Engineering | `0.45.x` (pre-1.0 minor pinned; minimum `0.45.2`) | Apache-2.0 | `0.45.2` is required to remediate GHSA-gpj5-g38j-94v9; review npm/GitHub advisories and `pnpm audit` before upgrades; processes database schema and query data inside the application boundary | Open source; no recurring fee | Keep SQL behind `@fixmyfeed/database`; reviewed SQL and another supported Drizzle PostgreSQL driver preserve portability |
+| `drizzle-kit` | Development-time SQL migration generation/check/application; Feed Doctor Engineering | `0.31.x` (pre-1.0 minor pinned) | MIT | Review npm/GitHub advisories and `pnpm audit` before upgrades; reads local schema metadata, migration SQL, and the configured database URL during migration only | Open source; no recurring fee | Committed reviewed SQL remains executable without generation; remove the CLI after exporting equivalent migration tooling under a new ADR |
+| `postgres` (Postgres.js) | PostgreSQL wire-protocol driver used only by `@fixmyfeed/database`; Feed Doctor Engineering | `3.x` | Unlicense | Review npm/GitHub advisories and `pnpm audit` before upgrades; transmits SQL, bound values, and database results over the configured PostgreSQL connection | Open source; no recurring fee | Adapter boundary permits replacement with another Drizzle-supported PostgreSQL driver without changing domain packages |
+| `tsx` (transitive via `drizzle-kit`) | Development-time TypeScript loader required by Drizzle Kit; Feed Doctor Engineering | Exact `4.23.1` override | MIT | Pinned outside the minimum-release-age window; review npm/GitHub advisories and `pnpm audit` before upgrades; executes repository migration configuration locally | Open source; no recurring fee | Remove with Drizzle Kit or replace only through its supported dependency line |
+
 ## Related Documents
 
 - `/AGENTS.md`
