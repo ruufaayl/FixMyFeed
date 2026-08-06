@@ -36,6 +36,13 @@
       "when": 1786036063842,
       "tag": "0004_t015_encrypted_credential_vault",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786040328106,
+      "tag": "0005_t017_support_access_grants",
+      "breakpoints": true
     }
   ]
 }
