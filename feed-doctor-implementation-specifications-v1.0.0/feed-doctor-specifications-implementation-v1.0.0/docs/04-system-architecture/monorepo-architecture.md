@@ -38,7 +38,7 @@ This document is the implementation authority for Monorepo Architecture. It defi
 ## Functional Requirements
 
 - Applications: `apps/web`, `apps/worker`, `apps/maintenance`.
-- Packages: `domain`, `contracts`, `database`, `storage`, `auth`, `connectors`, `diagnostics`, `repairs`, `jobs`, `analytics`, `seo`, `ui`, `config`, `observability`, `testing`.
+- Packages: `domain`, `contracts`, `database`, `storage`, `notifications`, `auth`, `connectors`, `diagnostics`, `repairs`, `jobs`, `analytics`, `seo`, `ui`, `config`, `observability`, `testing`.
 - Domain packages MUST NOT import framework, database-driver, HTTP, or provider SDK code.
 - Connector packages may depend on contracts and domain abstractions but not application UI.
 - Database access MUST be exposed through tenant-aware repositories; direct ad hoc SQL outside the database package is prohibited.

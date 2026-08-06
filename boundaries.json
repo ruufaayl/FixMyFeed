@@ -18,13 +18,14 @@
       "ui",
       "repairs",
       "jobs",
-      "storage"
+      "storage",
+      "notifications"
     ]
   },
   "layers": {
     "0-pure": ["domain", "config", "observability"],
     "1-contracts": ["contracts", "testing"],
-    "2-infrastructure": ["database", "storage"],
+    "2-infrastructure": ["database", "storage", "notifications"],
     "3-capabilities": ["auth", "connectors", "diagnostics", "seo", "analytics", "ui"],
     "4-orchestration": ["repairs", "jobs"],
     "5-applications": ["web", "worker", "maintenance"]
@@ -53,6 +54,7 @@
     ],
     "jobs": ["domain", "contracts", "config", "observability", "database"],
     "storage": ["domain", "contracts", "config", "observability"],
+    "notifications": ["domain", "contracts", "config", "observability"],
     "web": [
       "domain",
       "contracts",
@@ -67,7 +69,8 @@
       "ui",
       "repairs",
       "jobs",
-      "storage"
+      "storage",
+      "notifications"
     ],
     "worker": [
       "domain",
@@ -82,9 +85,19 @@
       "analytics",
       "repairs",
       "jobs",
-      "storage"
+      "storage",
+      "notifications"
     ],
-    "maintenance": ["domain", "contracts", "config", "observability", "database", "jobs", "storage"]
+    "maintenance": [
+      "domain",
+      "contracts",
+      "config",
+      "observability",
+      "database",
+      "jobs",
+      "storage",
+      "notifications"
+    ]
   },
   "invariants": {
     "domainIsPure": "The 'domain' package MUST NOT declare any internal or third-party runtime dependency (no framework, database-driver, HTTP, or provider SDK code).",
