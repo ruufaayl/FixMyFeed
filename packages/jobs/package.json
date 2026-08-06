@@ -16,6 +16,9 @@
     "build": "tsc -b",
     "clean": "tsc -b --clean"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@fixmyfeed/config": "workspace:*",
+    "pg-boss": "^10.3.2"
+  },
   "devDependencies": {}
 }
