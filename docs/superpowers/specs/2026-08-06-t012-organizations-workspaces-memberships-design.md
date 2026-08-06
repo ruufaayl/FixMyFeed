@@ -29,11 +29,11 @@ Organizations are tenant roots and therefore do not repeat `organization_id`. Ea
 
 ### Workspaces
 
-Workspaces carry `organization_id`, UUIDv7 identity, normalized name and tenant-local slug, lifecycle status, creator user identifier, UTC timestamps, optimistic version, and optional deletion timestamp. Tenant-local slug uniqueness and tenant-first keyset indexes are enforced. A composite `(organization_id, id)` key supports same-tenant foreign keys.
+Workspaces carry `organization_id`, UUIDv7 identity, normalized name and tenant-local slug, lifecycle status, tenant-scoped idempotency key, creator user identifier, UTC timestamps, optimistic version, and optional deletion timestamp. Tenant-local slug and creator/idempotency uniqueness plus tenant-first keyset indexes are enforced. A composite `(organization_id, id)` key supports same-tenant foreign keys.
 
 ### Memberships
 
-Memberships carry `organization_id`, user identifier, optional workspace identifier, canonical role, lifecycle status, creator user identifier, UTC timestamps, optimistic version, and optional deletion timestamp. User and organization deletion are restrictive. Workspace-scoped rows use a composite foreign key to prevent cross-tenant workspace references. Partial uniqueness prevents duplicate organization-wide or workspace-specific memberships for the same user.
+Memberships carry `organization_id`, user identifier, optional workspace identifier, canonical role, lifecycle status, tenant-scoped idempotency key, creator user identifier, UTC timestamps, optimistic version, and optional deletion timestamp. User and organization deletion are restrictive. Workspace-scoped rows use a composite foreign key to prevent cross-tenant workspace references. Partial uniqueness prevents duplicate organization-wide or workspace-specific memberships for the same user, while creator/idempotency uniqueness makes safe create retries return the original result.
 
 The supported lifecycle values are:
 
