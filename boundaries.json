@@ -1,0 +1,57 @@
+{
+  "$comment": "Authoritative package-boundary and dependency-direction graph for the FixMyFeed monorepo. Source of truth for T000. Enforced by tests/boundaries.test.mjs. Derived from docs/04-system-architecture/monorepo-architecture.md and reference-architecture.md. Adding an edge requires an approved documentation change (see AGENTS.md).",
+  "scope": "@fixmyfeed",
+  "workspaces": {
+    "apps": ["web", "worker", "maintenance"],
+    "packages": [
+      "domain",
+      "contracts",
+      "config",
+      "observability",
+      "testing",
+      "database",
+      "auth",
+      "connectors",
+      "diagnostics",
+      "seo",
+      "analytics",
+      "ui",
+      "repairs",
+      "jobs"
+    ]
+  },
+  "layers": {
+    "0-pure": ["domain", "config", "observability"],
+    "1-contracts": ["contracts", "testing"],
+    "2-infrastructure": ["database"],
+    "3-capabilities": ["auth", "connectors", "diagnostics", "seo", "analytics", "ui"],
+    "4-orchestration": ["repairs", "jobs"],
+    "5-applications": ["web", "worker", "maintenance"]
+  },
+  "allowedDependencies": {
+    "domain": [],
+    "config": [],
+    "observability": [],
+    "contracts": ["domain"],
+    "testing": ["domain", "contracts"],
+    "database": ["domain", "contracts", "config", "observability"],
+    "auth": ["domain", "contracts", "config", "observability", "database"],
+    "connectors": ["domain", "contracts", "config", "observability"],
+    "diagnostics": ["domain", "contracts", "config", "observability", "database"],
+    "seo": ["domain", "contracts", "config", "observability"],
+    "analytics": ["domain", "contracts", "config", "observability", "database"],
+    "ui": ["domain", "contracts"],
+    "repairs": ["domain", "contracts", "config", "observability", "database", "connectors", "diagnostics"],
+    "jobs": ["domain", "contracts", "config", "observability", "database"],
+    "web": ["domain", "contracts", "config", "observability", "database", "auth", "connectors", "diagnostics", "seo", "analytics", "ui", "repairs", "jobs"],
+    "worker": ["domain", "contracts", "config", "observability", "database", "auth", "connectors", "diagnostics", "seo", "analytics", "repairs", "jobs"],
+    "maintenance": ["domain", "contracts", "config", "observability", "database", "jobs"]
+  },
+  "invariants": {
+    "domainIsPure": "The 'domain' package MUST NOT declare any internal or third-party runtime dependency (no framework, database-driver, HTTP, or provider SDK code).",
+    "connectorsNotUi": "Connector packages MUST NOT depend on application UI ('ui').",
+    "noAppAsDependency": "No package or app may depend on an application workspace (apps are deploy leaves).",
+    "acyclic": "The internal dependency graph MUST be acyclic; dependency cycles are release-blocking.",
+    "allowListConformance": "Each workspace's declared internal dependencies MUST be a subset of its allowedDependencies entry."
+  }
+}

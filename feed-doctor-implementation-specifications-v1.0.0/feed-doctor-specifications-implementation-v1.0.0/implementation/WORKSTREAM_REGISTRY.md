@@ -175,7 +175,7 @@ This document is the implementation authority for Workstream Registry. It define
 
 | Task | Name | Epic | Status |
 |---|---|---|---|
-| T000 | Initialize monorepo and package boundaries | E00 | Not Started |
+| T000 | Initialize monorepo and package boundaries | E00 | In Review |
 | T001 | Configure formatting linting type checks and commit hooks | E00 | Not Started |
 | T002 | Create unit integration contract and end-to-end test harnesses | E00 | Not Started |
 | T003 | Create configuration schema and startup validation | E00 | Not Started |

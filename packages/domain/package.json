@@ -1,0 +1,21 @@
+{
+  "name": "@fixmyfeed/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-free domain model: entities, value objects, and pure business invariants. Imports no framework, database-driver, HTTP, or provider SDK code.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

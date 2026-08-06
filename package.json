@@ -1,0 +1,23 @@
+{
+  "name": "fixmyfeed",
+  "version": "0.0.0",
+  "private": true,
+  "description": "FixMyFeed monorepo — product-feed diagnostics and repair.",
+  "type": "module",
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "clean": "tsc -b --clean",
+    "test:boundaries": "node --test tests/boundaries.test.mjs",
+    "test": "node --test tests/boundaries.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "24.9.2",
+    "typescript": "5.9.2"
+  }
+}

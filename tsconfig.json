@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "files": [],
+  "references": [
+    { "path": "packages/domain" },
+    { "path": "packages/config" },
+    { "path": "packages/observability" },
+    { "path": "packages/contracts" },
+    { "path": "packages/testing" },
+    { "path": "packages/database" },
+    { "path": "packages/auth" },
+    { "path": "packages/connectors" },
+    { "path": "packages/diagnostics" },
+    { "path": "packages/seo" },
+    { "path": "packages/analytics" },
+    { "path": "packages/ui" },
+    { "path": "packages/repairs" },
+    { "path": "packages/jobs" },
+    { "path": "apps/web" },
+    { "path": "apps/worker" },
+    { "path": "apps/maintenance" }
+  ]
+}
