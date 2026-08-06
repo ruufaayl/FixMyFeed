@@ -211,8 +211,16 @@ export interface TenancyRepository {
   ): Promise<readonly Role[]>;
 }
 
-export function createTenancyRepository(
+export interface TenancyPersistence {
+  transaction<T>(operation: (transaction: TenancyTransaction) => Promise<T>): Promise<T>;
+}
+
+export function createDrizzleTenancyPersistence(
   client: Pick<DatabaseClient, "db">,
+): TenancyPersistence;
+
+export function createTenancyRepository(
+  persistence: TenancyPersistence,
   options?: TenancyRepositoryOptions,
 ): TenancyRepository;
 ```
@@ -276,11 +284,11 @@ git commit -m "feat(T012): define tenancy repository contracts"
 **Interfaces:**
 
 - Produces: `bootstrapOrganization(input: BootstrapOrganizationInput): Promise<OrganizationBootstrapResult>`.
-- Consumes: a database transaction capable of inserting and selecting organizations and memberships.
+- Consumes: `TenancyPersistence.transaction`, with the production implementation supplied by `createDrizzleTenancyPersistence(client)`.
 
 - [ ] **Step 1: Write failing bootstrap tests**
 
-Use a deterministic fake database transaction adapter to verify:
+Use a deterministic in-memory `TenancyPersistence` implementation to verify the repository's real behavior while keeping the external SQL engine at the adapter boundary:
 
 1. the organization and active `administrator` membership are committed together;
 2. a membership insert failure leaves neither row committed;

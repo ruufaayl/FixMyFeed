@@ -4,7 +4,13 @@ import { isRole, type Role } from "@fixmyfeed/domain";
 import type { DatabaseClient } from "./client.js";
 import { isUuidV7 } from "./ids.js";
 import { TENANCY_ERROR_CODE, TenancyError, type TenancyErrorCode } from "./tenancy-errors.js";
-import type { Membership, Organization, Workspace } from "./tenancy-schema.js";
+import type {
+  Membership,
+  NewMembership,
+  NewOrganization,
+  Organization,
+  Workspace,
+} from "./tenancy-schema.js";
 
 const MAX_NAME_LENGTH = 200;
 const MAX_SLUG_LENGTH = 100;
@@ -82,6 +88,39 @@ export interface TenancyEvent {
 
 export interface TenancyRepositoryOptions {
   readonly onEvent?: (event: TenancyEvent) => void;
+}
+
+export type BootstrapOrganizationRecord = Pick<
+  NewOrganization,
+  "name" | "slug" | "status" | "idempotencyKey" | "createdByUserId"
+>;
+
+export type BootstrapMembershipRecord = Pick<
+  NewMembership,
+  | "organizationId"
+  | "workspaceId"
+  | "userId"
+  | "role"
+  | "status"
+  | "idempotencyKey"
+  | "createdByUserId"
+>;
+
+export interface TenancyTransaction {
+  findOrganizationBootstrap(
+    actorUserId: string,
+    idempotencyKey: string,
+  ): Promise<OrganizationBootstrapResult | undefined>;
+  insertOrganization(input: BootstrapOrganizationRecord): Promise<Organization>;
+  insertMembership(input: BootstrapMembershipRecord): Promise<Membership>;
+}
+
+export interface TenancyPersistence {
+  transaction<T>(operation: (transaction: TenancyTransaction) => Promise<T>): Promise<T>;
+}
+
+export interface OrganizationBootstrapRepository {
+  bootstrapOrganization(input: BootstrapOrganizationInput): Promise<OrganizationBootstrapResult>;
 }
 
 export interface TenancyRepository {
@@ -221,4 +260,96 @@ export function reportTenancyEvent(
   } catch {
     // Telemetry is best-effort and cannot change a durable tenancy outcome.
   }
+}
+
+const validateBootstrapOrganizationInput = (
+  value: BootstrapOrganizationInput,
+): BootstrapOrganizationInput => {
+  const input = asRecord(value);
+  if (
+    input === undefined ||
+    typeof input.actorUserId !== "string" ||
+    !isUuidV7(input.actorUserId)
+  ) {
+    return invalidInput();
+  }
+
+  return {
+    name: normalizeTenancyName(input.name),
+    slug: validateTenancySlug(input.slug),
+    actorUserId: input.actorUserId,
+    idempotencyKey: validateIdempotencyKey(input.idempotencyKey),
+    correlationId: boundedValue(input.correlationId),
+  };
+};
+
+export function createTenancyRepository(
+  persistence: TenancyPersistence,
+  options: TenancyRepositoryOptions = {},
+): OrganizationBootstrapRepository {
+  if (persistence === null || typeof persistence?.transaction !== "function") invalidInput();
+
+  return Object.freeze({
+    async bootstrapOrganization(
+      unvalidatedInput: BootstrapOrganizationInput,
+    ): Promise<OrganizationBootstrapResult> {
+      const input = validateBootstrapOrganizationInput(unvalidatedInput);
+
+      try {
+        const transactionResult = await persistence.transaction(async (transaction) => {
+          const existing = await transaction.findOrganizationBootstrap(
+            input.actorUserId,
+            input.idempotencyKey,
+          );
+          if (existing !== undefined) return { result: existing, created: false } as const;
+
+          const organization = await transaction.insertOrganization({
+            name: input.name,
+            slug: input.slug,
+            status: "active",
+            idempotencyKey: input.idempotencyKey,
+            createdByUserId: input.actorUserId,
+          });
+          const membership = await transaction.insertMembership({
+            organizationId: organization.id,
+            workspaceId: null,
+            userId: input.actorUserId,
+            role: "administrator",
+            status: "active",
+            idempotencyKey: input.idempotencyKey,
+            createdByUserId: input.actorUserId,
+          });
+          return { result: { organization, membership }, created: true } as const;
+        });
+
+        if (transactionResult.created) {
+          reportTenancyEvent(options.onEvent, {
+            type: "organization.created.v1",
+            outcome: "succeeded",
+            actorUserId: input.actorUserId,
+            organizationId: transactionResult.result.organization.id,
+            resourceType: "organization",
+            resourceId: transactionResult.result.organization.id,
+            version: transactionResult.result.organization.version,
+            correlationId: input.correlationId,
+          });
+        }
+        return transactionResult.result;
+      } catch (error) {
+        const tenancyError =
+          error instanceof TenancyError
+            ? error
+            : new TenancyError(TENANCY_ERROR_CODE.PERSISTENCE_FAILED);
+        reportTenancyEvent(options.onEvent, {
+          type: "organization.created.v1",
+          outcome: "failed",
+          actorUserId: input.actorUserId,
+          resourceType: "organization",
+          correlationId: input.correlationId,
+          errorCode: tenancyError.code,
+        });
+        throw tenancyError;
+      }
+    },
+  });
 }

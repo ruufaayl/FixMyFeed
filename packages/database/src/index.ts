@@ -58,6 +58,7 @@ export type {
 export { TENANCY_ERROR_CODE, TenancyError } from "./tenancy-errors.js";
 export type { TenancyErrorCode } from "./tenancy-errors.js";
 export {
+  createTenancyRepository,
   normalizeTenancyName,
   reportTenancyEvent,
   validateExpectedVersion,
@@ -68,17 +69,22 @@ export {
   validateTenancySlug,
 } from "./tenancy-repository.js";
 export type {
+  BootstrapMembershipRecord,
+  BootstrapOrganizationRecord,
   BootstrapOrganizationInput,
   CreateMembershipInput,
   CreateWorkspaceInput,
   OrganizationBootstrapResult,
+  OrganizationBootstrapRepository,
   TenantContext,
   TenancyDatabaseClient,
   TenancyEvent,
   TenancyListCursor,
   TenancyListInput,
+  TenancyPersistence,
   TenancyRepository,
   TenancyRepositoryOptions,
+  TenancyTransaction,
   UpdateMembershipInput,
   UpdateWorkspaceInput,
 } from "./tenancy-repository.js";

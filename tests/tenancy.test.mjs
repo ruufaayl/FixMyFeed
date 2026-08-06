@@ -18,6 +18,87 @@ const { getTableConfig } = databaseRequire("drizzle-orm/pg-core");
 const tableName = (table) => table?.[Symbol.for("drizzle:Name")];
 const tableColumns = (table) => table?.[Symbol.for("drizzle:Columns")];
 
+function organizationInput(actorUserId = database.createUuidV7()) {
+  return {
+    name: "Acme Feed Team",
+    slug: "acme-feed-team",
+    actorUserId,
+    idempotencyKey: "organization-create-1",
+    correlationId: "request-123",
+  };
+}
+
+function inMemoryBootstrapPersistence({ failMembership = false } = {}) {
+  const state = {
+    organizations: [],
+    memberships: [],
+    organizationInsertAttempts: 0,
+    membershipInsertAttempts: 0,
+  };
+  const timestamp = new Date("2026-08-06T12:00:00.000Z");
+
+  return {
+    state,
+    persistence: {
+      async transaction(operation) {
+        const stagedOrganizations = [...state.organizations];
+        const stagedMemberships = [...state.memberships];
+        const transaction = {
+          async findOrganizationBootstrap(actorUserId, idempotencyKey) {
+            const organization = stagedOrganizations.find(
+              (candidate) =>
+                candidate.createdByUserId === actorUserId &&
+                candidate.idempotencyKey === idempotencyKey,
+            );
+            if (organization === undefined) return undefined;
+            const membership = stagedMemberships.find(
+              (candidate) =>
+                candidate.organizationId === organization.id &&
+                candidate.userId === actorUserId &&
+                candidate.workspaceId === null,
+            );
+            return membership === undefined ? undefined : { organization, membership };
+          },
+          async insertOrganization(input) {
+            state.organizationInsertAttempts += 1;
+            const organization = {
+              id: database.createUuidV7(),
+              ...input,
+              createdAt: timestamp,
+              updatedAt: timestamp,
+              version: 1,
+              deletedAt: null,
+            };
+            stagedOrganizations.push(organization);
+            return organization;
+          },
+          async insertMembership(input) {
+            state.membershipInsertAttempts += 1;
+            if (failMembership) {
+              throw new Error("membership insert failed with database-password-must-not-leak");
+            }
+            const membership = {
+              id: database.createUuidV7(),
+              ...input,
+              createdAt: timestamp,
+              updatedAt: timestamp,
+              version: 1,
+              deletedAt: null,
+            };
+            stagedMemberships.push(membership);
+            return membership;
+          },
+        };
+
+        const result = await operation(transaction);
+        state.organizations = stagedOrganizations;
+        state.memberships = stagedMemberships;
+        return result;
+      },
+    },
+  };
+}
+
 test("schema: memberships use the canonical T013 role identifiers", () => {
   assert.deepEqual(database.MEMBERSHIP_ROLE, [
     "viewer",
@@ -259,4 +340,100 @@ test("event: observer failure cannot change the tenancy operation outcome", () =
   );
   assert.deepEqual(observed, event);
   assert.equal(Object.isFrozen(observed), true);
+});
+
+test("bootstrap: organization and initial administrator membership commit atomically", async () => {
+  assert.equal(typeof database.createTenancyRepository, "function");
+  const { persistence, state } = inMemoryBootstrapPersistence();
+  const events = [];
+  const repository = database.createTenancyRepository(persistence, {
+    onEvent: (event) => events.push(event),
+  });
+  const input = organizationInput();
+
+  const result = await repository.bootstrapOrganization(input);
+
+  assert.equal(state.organizations.length, 1);
+  assert.equal(state.memberships.length, 1);
+  assert.equal(result.organization.name, "Acme Feed Team");
+  assert.equal(result.organization.slug, "acme-feed-team");
+  assert.equal(result.organization.status, "active");
+  assert.equal(result.membership.organizationId, result.organization.id);
+  assert.equal(result.membership.userId, input.actorUserId);
+  assert.equal(result.membership.workspaceId, null);
+  assert.equal(result.membership.role, "administrator");
+  assert.equal(result.membership.status, "active");
+  assert.deepEqual(events, [
+    {
+      type: "organization.created.v1",
+      outcome: "succeeded",
+      actorUserId: input.actorUserId,
+      organizationId: result.organization.id,
+      resourceType: "organization",
+      resourceId: result.organization.id,
+      version: 1,
+      correlationId: "request-123",
+    },
+  ]);
+});
+
+test("bootstrap: membership failure rolls back the organization and returns a redacted error", async () => {
+  assert.equal(typeof database.createTenancyRepository, "function");
+  const { persistence, state } = inMemoryBootstrapPersistence({ failMembership: true });
+  const events = [];
+  const repository = database.createTenancyRepository(persistence, {
+    onEvent: (event) => events.push(event),
+  });
+  const input = organizationInput();
+
+  await assert.rejects(repository.bootstrapOrganization(input), (error) => {
+    assert.ok(error instanceof database.TenancyError);
+    assert.equal(error.code, "TENANCY_PERSISTENCE_FAILED");
+    assert.doesNotMatch(JSON.stringify(error), /database-password-must-not-leak/);
+    return true;
+  });
+  assert.equal(state.organizations.length, 0);
+  assert.equal(state.memberships.length, 0);
+  assert.deepEqual(events, [
+    {
+      type: "organization.created.v1",
+      outcome: "failed",
+      actorUserId: input.actorUserId,
+      resourceType: "organization",
+      correlationId: "request-123",
+      errorCode: "TENANCY_PERSISTENCE_FAILED",
+    },
+  ]);
+});
+
+test("idempotent bootstrap: the same actor and key return the original durable result", async () => {
+  assert.equal(typeof database.createTenancyRepository, "function");
+  const { persistence, state } = inMemoryBootstrapPersistence();
+  const repository = database.createTenancyRepository(persistence);
+  const input = organizationInput();
+
+  const first = await repository.bootstrapOrganization(input);
+  const retry = await repository.bootstrapOrganization(input);
+
+  assert.deepEqual(retry, first);
+  assert.equal(state.organizationInsertAttempts, 1);
+  assert.equal(state.membershipInsertAttempts, 1);
+  assert.equal(state.organizations.length, 1);
+  assert.equal(state.memberships.length, 1);
+});
+
+test("bootstrap: observer failure cannot turn durable success into failure", async () => {
+  assert.equal(typeof database.createTenancyRepository, "function");
+  const { persistence, state } = inMemoryBootstrapPersistence();
+  const repository = database.createTenancyRepository(persistence, {
+    onEvent: () => {
+      throw new Error("telemetry unavailable");
+    },
+  });
+
+  const result = await repository.bootstrapOrganization(organizationInput());
+
+  assert.equal(result.organization.status, "active");
+  assert.equal(state.organizations.length, 1);
+  assert.equal(state.memberships.length, 1);
 });
