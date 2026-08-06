@@ -131,3 +131,47 @@ export type {
 } from "./audit-schema.js";
 export { computeAuditHash, verifyAuditChain } from "./audit-hash.js";
 export type { AuditChainRecord, AuditChainVerification, AuditHashInput } from "./audit-hash.js";
+// T015 application-managed encrypted credential vault.
+export { createCredentialCipher } from "./credential-vault-crypto.js";
+export type {
+  CredentialCipher,
+  CredentialCipherContext,
+  CredentialCipherOptions,
+  CredentialEnvelope,
+  DecryptedCredential,
+  DecryptCredentialInput,
+  EncryptCredentialInput,
+} from "./credential-vault-crypto.js";
+export { CREDENTIAL_VAULT_ERROR_CODE, CredentialVaultError } from "./credential-vault-errors.js";
+export type { CredentialVaultErrorCode } from "./credential-vault-errors.js";
+export {
+  CREDENTIAL_ENCRYPTION_ALGORITHM,
+  CREDENTIAL_STATUSES,
+  encryptedCredentials,
+} from "./credential-vault-schema.js";
+export type {
+  CredentialStatus,
+  EncryptedCredential,
+  NewEncryptedCredential,
+} from "./credential-vault-schema.js";
+export {
+  createCredentialVault,
+  createCredentialVaultFromConfig,
+  createDrizzleCredentialVaultPersistence,
+} from "./credential-vault.js";
+export type {
+  CredentialReference,
+  CredentialVault,
+  CredentialVaultApplicationConfig,
+  CredentialVaultDatabaseClient,
+  CredentialVaultEvent,
+  CredentialVaultMetadata,
+  CredentialVaultOptions,
+  CredentialVaultPersistence,
+  CredentialVaultRecord,
+  CredentialVaultRuntimeOptions,
+  NewCredentialVaultRecord,
+  RotateCredentialInput,
+  RevokeCredentialInput,
+  StoreCredentialInput,
+} from "./credential-vault.js";

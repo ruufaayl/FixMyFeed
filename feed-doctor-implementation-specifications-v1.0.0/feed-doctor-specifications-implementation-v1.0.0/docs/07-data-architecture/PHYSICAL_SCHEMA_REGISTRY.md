@@ -194,6 +194,7 @@ This document is the implementation authority for Physical Schema Registry. It d
 | `stores-and-integrations` | `store_domains` | 15 | `docs/07-data-architecture/tables/stores-and-integrations/store-domains.md` |
 | `stores-and-integrations` | `store_markets` | 15 | `docs/07-data-architecture/tables/stores-and-integrations/store-markets.md` |
 | `stores-and-integrations` | `platform_connections` | 17 | `docs/07-data-architecture/tables/stores-and-integrations/platform-connections.md` |
+| `stores-and-integrations` | `encrypted_credentials` | 17 | `docs/07-data-architecture/tables/stores-and-integrations/encrypted-credentials.md` |
 | `stores-and-integrations` | `oauth_connections` | 17 | `docs/07-data-architecture/tables/stores-and-integrations/oauth-connections.md` |
 | `stores-and-integrations` | `connector_installations` | 15 | `docs/07-data-architecture/tables/stores-and-integrations/connector-installations.md` |
 | `stores-and-integrations` | `connector_capabilities` | 15 | `docs/07-data-architecture/tables/stores-and-integrations/connector-capabilities.md` |

@@ -85,3 +85,23 @@ redact unknown persistence failures.
 Client validation accepts only PostgreSQL URLs and bounded pools. Construction
 is lazy. Migration failures expose stable error codes, omit credentials, emit
 only lifecycle event types, and close the dedicated single-connection client.
+
+## Encrypted credential vault
+
+T015 owns `encrypted_credentials`. Construct the persistence adapter with
+`createDrizzleCredentialVaultPersistence(client)` and the service with
+`createCredentialVaultFromConfig(config, persistence)`. The existing validated
+`DATA_ENCRYPTION_KEY` encrypts new credentials; `PREVIOUS_DATA_ENCRYPTION_KEY`
+is decryption-only and enables explicit optimistic rotation.
+
+Applications pass only a tenant-scoped credential ID to jobs and connectors.
+Use `withCredential` for immediate provider calls; never serialize, log, enqueue,
+cache, or retain its plaintext callback argument. The vault clears its owned
+buffer after the callback, returns metadata without envelope fields, and fails
+closed for cross-tenant, expired, revoked, tampered, or unkeyed records. Rotate
+before removing a previous key. Revocation is terminal and idempotent.
+
+Migration `0004_t015_encrypted_credential_vault` is additive. Application
+rollback may retain the table. A destructive contract migration requires all
+active credentials to be revoked or migrated, backup/restore verification,
+legal-hold review, and explicit operator approval.
