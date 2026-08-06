@@ -73,3 +73,52 @@ jobs:
 
       - name: Generated traceability check
         run: pnpm run check:traceability
+
+  migration-apply:
+    name: Migration apply (real Postgres 17)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Applies the whole migration chain (0000+) to a real PostgreSQL instance so
+    # apply-time failures (bad SQL, FK ordering, triggers) are caught — offline
+    # `drizzle-kit generate` and unit tests cannot catch these. Mirrors the
+    # docker-local dependency environment (compose.yaml) in CI.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: fixmyfeed
+          POSTGRES_USER: fixmyfeed
+          POSTGRES_PASSWORD: fixmyfeed_ci
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U fixmyfeed -d fixmyfeed"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://fixmyfeed:fixmyfeed_ci@localhost:5432/fixmyfeed
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10.32.1"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply all migrations to real Postgres
+        working-directory: packages/database
+        run: pnpm exec drizzle-kit migrate --config=drizzle.config.ts
+
+      - name: Database smoke test (schema present, audit immutability enforced)
+        run: node tools/db-smoke.mjs
