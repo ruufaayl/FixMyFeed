@@ -175,3 +175,28 @@ export type {
   RevokeCredentialInput,
   StoreCredentialInput,
 } from "./credential-vault.js";
+// T017 time-boxed support access grants.
+export {
+  SUPPORT_ACCESS_SCOPES,
+  SUPPORT_ACCESS_STATUSES,
+  supportAccessGrants,
+} from "./support-access-schema.js";
+export type {
+  NewSupportAccessGrant,
+  SupportAccessGrant,
+  SupportAccessScope,
+  SupportAccessStatus,
+} from "./support-access-schema.js";
+export {
+  SUPPORT_ACCESS_ERROR_CODE,
+  SupportAccessError,
+  activeSupportScopes,
+  deriveSupportGrantStatus,
+  isSupportGrantActive,
+  validateSupportGrantInput,
+} from "./support-access.js";
+export type {
+  SupportAccessErrorCode,
+  SupportGrantInput,
+  SupportGrantState,
+} from "./support-access.js";
