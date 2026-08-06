@@ -1,0 +1,23 @@
+{
+  "name": "@fixmyfeed/storage",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Provider-neutral, tenant-scoped object storage abstraction (filesystem bootstrap driver + S3-compatible adapter over an injected client port).",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean"
+  },
+  "dependencies": {
+    "@fixmyfeed/config": "workspace:*"
+  },
+  "devDependencies": {}
+}
