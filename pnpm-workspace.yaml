@@ -1,3 +1,6 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+overrides:
+  tsx: 4.23.1
