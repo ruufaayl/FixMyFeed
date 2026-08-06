@@ -29,6 +29,7 @@
 - Modify: `packages/database/src/index.ts`
 - Modify: `packages/database/package.json`
 - Modify: `pnpm-lock.yaml`
+- Modify: `tests/auth.test.mjs`
 - Test: `tests/tenancy.test.mjs`
 
 **Interfaces:**
@@ -38,7 +39,7 @@
 
 - [ ] **Step 1: Write failing schema contract tests**
 
-Add tests that import the three tables from `packages/database/dist/index.js` and assert the table names, exact role values, required tenant columns, UUID defaults, lifecycle values, version defaults, restrictive foreign keys, composite tenant foreign key, partial membership uniqueness, and tenant-first list indexes. The role assertion must be:
+Add tests that import the three tables from `packages/database/dist/index.js` and assert the table names, exact role values, required tenant columns, UUID defaults, lifecycle values, version defaults, restrictive foreign keys, composite tenant foreign key, partial membership uniqueness, and tenant-first list indexes. Update the existing auth schema aggregation assertion so it still verifies Better Auth's four named tables while admitting exactly the three documented T012 tables. The role assertion must be:
 
 ```js
 assert.deepEqual(MEMBERSHIP_ROLE, [
@@ -85,7 +86,7 @@ Expected: Typecheck exits 0 and schema contract tests pass.
 - [ ] **Step 5: Commit the schema slice**
 
 ```powershell
-git add packages/database/src/tenancy-schema.ts packages/database/src/schema.ts packages/database/src/index.ts packages/database/package.json pnpm-lock.yaml tests/tenancy.test.mjs
+git add packages/database/src/tenancy-schema.ts packages/database/src/schema.ts packages/database/src/index.ts packages/database/package.json pnpm-lock.yaml tests/auth.test.mjs tests/tenancy.test.mjs
 git commit -m "feat(T012): add tenancy schema"
 ```
 

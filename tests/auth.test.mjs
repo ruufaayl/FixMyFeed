@@ -61,12 +61,15 @@ function captureAuth(overrides = {}) {
   return { captured, handler, integration };
 }
 
-test("schema: Better Auth owns exactly four documented core tables", () => {
+test("schema: Better Auth tables remain present in the aggregated documented schema", () => {
   assert.deepEqual(Object.keys(schema).sort(), [
     "authenticationVerifications",
+    "memberships",
+    "organizations",
     "sessions",
     "userIdentities",
     "users",
+    "workspaces",
   ]);
 
   assert.equal(tableName(users), "users");
