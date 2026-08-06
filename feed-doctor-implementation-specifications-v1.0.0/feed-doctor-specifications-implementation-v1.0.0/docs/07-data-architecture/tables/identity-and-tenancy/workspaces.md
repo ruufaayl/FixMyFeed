@@ -236,8 +236,8 @@ Schema changes are forward-compatible expand/migrate/contract operations. New no
 The implementation uniquely constrains `(organization_id, id)` for composite
 membership references, `(organization_id, slug)`, and
 `(organization_id, created_by_user_id, idempotency_key)`. Tenant lists use
-`(organization_id, created_at DESC, id DESC)` and exclude archived rows unless
-the caller explicitly requests them.
+`(organization_id, created_at DESC, id DESC)` and retain lifecycle state so
+callers can distinguish active and recoverably archived rows.
 
 ## Rollback
 
