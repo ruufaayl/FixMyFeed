@@ -9,3 +9,22 @@
  */
 export const workspaceName = "@fixmyfeed/domain" as const;
 export const workspaceKind = "package" as const;
+
+// RBAC role/permission model and evaluation (task T013).
+export {
+  ROLES,
+  ROLE_RANK,
+  PERMISSIONS,
+  PERMISSION_MATRIX,
+  PERMISSION_SET,
+  isRole,
+  isPermission,
+} from "./rbac/roles.js";
+export type { Role, Permission, PermissionCondition, PermissionRequirement } from "./rbac/roles.js";
+export { evaluatePermission, can, PERMISSION_DECISION_CODE } from "./rbac/evaluate.js";
+export type {
+  PermissionRequest,
+  PermissionDecision,
+  PermissionDecisionCode,
+  PermissionContext,
+} from "./rbac/evaluate.js";
