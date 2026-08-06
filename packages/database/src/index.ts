@@ -58,6 +58,7 @@ export type {
 export { TENANCY_ERROR_CODE, TenancyError } from "./tenancy-errors.js";
 export type { TenancyErrorCode } from "./tenancy-errors.js";
 export {
+  createDrizzleTenancyPersistence,
   createTenancyRepository,
   normalizeTenancyName,
   reportTenancyEvent,
@@ -76,6 +77,7 @@ export type {
   CreateWorkspaceInput,
   OrganizationBootstrapResult,
   OrganizationBootstrapRepository,
+  OperationalTenancyRepository,
   TenantContext,
   TenancyDatabaseClient,
   TenancyEvent,

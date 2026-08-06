@@ -8,6 +8,7 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { test } from "node:test";
+import { inspect } from "node:util";
 
 const database = await import("../packages/database/dist/index.js");
 const databaseRequire = createRequire(
@@ -31,18 +32,55 @@ function organizationInput(actorUserId = database.createUuidV7()) {
 function inMemoryBootstrapPersistence({ failMembership = false } = {}) {
   const state = {
     organizations: [],
+    workspaces: [],
     memberships: [],
     organizationInsertAttempts: 0,
+    workspaceInsertAttempts: 0,
     membershipInsertAttempts: 0,
+    operationScopes: [],
   };
-  const timestamp = new Date("2026-08-06T12:00:00.000Z");
+  let timestampSequence = 0;
+  const nextTimestamp = () =>
+    new Date(Date.parse("2026-08-06T12:00:00.000Z") + timestampSequence++);
 
   return {
     state,
     persistence: {
       async transaction(operation) {
         const stagedOrganizations = [...state.organizations];
+        const stagedWorkspaces = [...state.workspaces];
         const stagedMemberships = [...state.memberships];
+        const scoped = (operationName, organizationId) => {
+          state.operationScopes.push({ operationName, organizationId });
+        };
+        const updateRow = (rows, id, expectedVersion, changes) => {
+          const index = rows.findIndex((row) => row.id === id);
+          if (index < 0 || rows[index].version !== expectedVersion) return undefined;
+          const updated = {
+            ...rows[index],
+            ...changes,
+            updatedAt: nextTimestamp(),
+            version: expectedVersion + 1,
+          };
+          rows[index] = updated;
+          return updated;
+        };
+        const listRows = (rows, organizationId, input) =>
+          rows
+            .filter((row) => row.organizationId === organizationId)
+            .sort(
+              (left, right) =>
+                right.createdAt.getTime() - left.createdAt.getTime() ||
+                right.id.localeCompare(left.id),
+            )
+            .filter(
+              (row) =>
+                input.cursor === undefined ||
+                row.createdAt < input.cursor.createdAt ||
+                (row.createdAt.getTime() === input.cursor.createdAt.getTime() &&
+                  row.id < input.cursor.id),
+            )
+            .slice(0, input.limit);
         const transaction = {
           async findOrganizationBootstrap(actorUserId, idempotencyKey) {
             const organization = stagedOrganizations.find(
@@ -64,8 +102,8 @@ function inMemoryBootstrapPersistence({ failMembership = false } = {}) {
             const organization = {
               id: database.createUuidV7(),
               ...input,
-              createdAt: timestamp,
-              updatedAt: timestamp,
+              createdAt: nextTimestamp(),
+              updatedAt: nextTimestamp(),
               version: 1,
               deletedAt: null,
             };
@@ -80,18 +118,124 @@ function inMemoryBootstrapPersistence({ failMembership = false } = {}) {
             const membership = {
               id: database.createUuidV7(),
               ...input,
-              createdAt: timestamp,
-              updatedAt: timestamp,
+              createdAt: nextTimestamp(),
+              updatedAt: nextTimestamp(),
               version: 1,
               deletedAt: null,
             };
             stagedMemberships.push(membership);
             return membership;
           },
+          async getOrganization(organizationId) {
+            scoped("getOrganization", organizationId);
+            return stagedOrganizations.find((row) => row.id === organizationId);
+          },
+          async updateOrganization(organizationId, changes, expectedVersion) {
+            scoped("updateOrganization", organizationId);
+            return updateRow(stagedOrganizations, organizationId, expectedVersion, changes);
+          },
+          async findWorkspaceCreate(organizationId, actorUserId, idempotencyKey) {
+            scoped("findWorkspaceCreate", organizationId);
+            return stagedWorkspaces.find(
+              (row) =>
+                row.organizationId === organizationId &&
+                row.createdByUserId === actorUserId &&
+                row.idempotencyKey === idempotencyKey,
+            );
+          },
+          async insertWorkspace(input) {
+            scoped("insertWorkspace", input.organizationId);
+            state.workspaceInsertAttempts += 1;
+            const workspace = {
+              id: database.createUuidV7(),
+              ...input,
+              createdAt: nextTimestamp(),
+              updatedAt: nextTimestamp(),
+              version: 1,
+              deletedAt: null,
+            };
+            stagedWorkspaces.push(workspace);
+            return workspace;
+          },
+          async getWorkspace(organizationId, workspaceId) {
+            scoped("getWorkspace", organizationId);
+            return stagedWorkspaces.find(
+              (row) => row.organizationId === organizationId && row.id === workspaceId,
+            );
+          },
+          async listWorkspaces(organizationId, input) {
+            scoped("listWorkspaces", organizationId);
+            return listRows(stagedWorkspaces, organizationId, input);
+          },
+          async updateWorkspace(organizationId, workspaceId, changes, expectedVersion) {
+            scoped("updateWorkspace", organizationId);
+            const workspace = stagedWorkspaces.find(
+              (row) => row.organizationId === organizationId && row.id === workspaceId,
+            );
+            return workspace === undefined
+              ? undefined
+              : updateRow(stagedWorkspaces, workspaceId, expectedVersion, changes);
+          },
+          async findMembershipCreate(organizationId, actorUserId, idempotencyKey) {
+            scoped("findMembershipCreate", organizationId);
+            return stagedMemberships.find(
+              (row) =>
+                row.organizationId === organizationId &&
+                row.createdByUserId === actorUserId &&
+                row.idempotencyKey === idempotencyKey,
+            );
+          },
+          async insertScopedMembership(input) {
+            scoped("insertMembership", input.organizationId);
+            state.membershipInsertAttempts += 1;
+            const membership = {
+              id: database.createUuidV7(),
+              ...input,
+              createdAt: nextTimestamp(),
+              updatedAt: nextTimestamp(),
+              version: 1,
+              deletedAt: null,
+            };
+            stagedMemberships.push(membership);
+            return membership;
+          },
+          async getMembership(organizationId, membershipId) {
+            scoped("getMembership", organizationId);
+            return stagedMemberships.find(
+              (row) => row.organizationId === organizationId && row.id === membershipId,
+            );
+          },
+          async listMemberships(organizationId, input) {
+            scoped("listMemberships", organizationId);
+            return listRows(stagedMemberships, organizationId, input);
+          },
+          async updateMembership(organizationId, membershipId, changes, expectedVersion) {
+            scoped("updateMembership", organizationId);
+            const membership = stagedMemberships.find(
+              (row) => row.organizationId === organizationId && row.id === membershipId,
+            );
+            return membership === undefined
+              ? undefined
+              : updateRow(stagedMemberships, membershipId, expectedVersion, changes);
+          },
+          async resolveActiveRoles(organizationId, userId, workspaceId) {
+            scoped("resolveActiveRoles", organizationId);
+            return stagedMemberships
+              .filter(
+                (row) =>
+                  row.organizationId === organizationId &&
+                  row.userId === userId &&
+                  row.status === "active" &&
+                  row.deletedAt === null &&
+                  (row.workspaceId === null || row.workspaceId === workspaceId),
+              )
+              .map((row) => row.role);
+          },
         };
 
         const result = await operation(transaction);
         state.organizations = stagedOrganizations;
+        state.workspaces = stagedWorkspaces;
         state.memberships = stagedMemberships;
         return result;
       },
@@ -436,4 +580,320 @@ test("bootstrap: observer failure cannot turn durable success into failure", asy
   assert.equal(result.organization.status, "active");
   assert.equal(state.organizations.length, 1);
   assert.equal(state.memberships.length, 1);
+});
+
+test("tenant isolation: workspace reads and membership references never cross organization scope", async () => {
+  const { persistence, state } = inMemoryBootstrapPersistence();
+  const repository = database.createTenancyRepository(persistence);
+  assert.equal(typeof repository.createWorkspace, "function");
+  assert.equal(typeof repository.createMembership, "function");
+  const inputA = organizationInput();
+  const inputB = organizationInput(database.createUuidV7());
+  inputB.slug = "bravo-feed-team";
+  inputB.idempotencyKey = "organization-create-2";
+  const tenantA = await repository.bootstrapOrganization(inputA);
+  const tenantB = await repository.bootstrapOrganization(inputB);
+  const contextA = {
+    organizationId: tenantA.organization.id,
+    actorUserId: inputA.actorUserId,
+    correlationId: "request-a",
+  };
+  const contextB = {
+    organizationId: tenantB.organization.id,
+    actorUserId: inputB.actorUserId,
+    correlationId: "request-b",
+  };
+  const workspace = await repository.createWorkspace(contextA, {
+    name: "Primary Store",
+    slug: "primary-store",
+    idempotencyKey: "workspace-create-1",
+  });
+
+  await assert.rejects(repository.getWorkspace(contextB, workspace.id), {
+    code: "TENANCY_NOT_FOUND",
+  });
+  await assert.rejects(
+    repository.createMembership(contextB, {
+      userId: database.createUuidV7(),
+      workspaceId: workspace.id,
+      role: "viewer",
+      idempotencyKey: "membership-create-cross-tenant",
+    }),
+    { code: "TENANCY_NOT_FOUND" },
+  );
+  await assert.rejects(repository.getWorkspace({}, workspace.id), {
+    code: "TENANCY_TENANT_SCOPE_REQUIRED",
+  });
+  assert.ok(
+    state.operationScopes.every(
+      ({ organizationId }) =>
+        organizationId === tenantA.organization.id || organizationId === tenantB.organization.id,
+    ),
+  );
+});
+
+test("workspace lifecycle: creates are idempotent and stale versions fail", async () => {
+  const { persistence, state } = inMemoryBootstrapPersistence();
+  const events = [];
+  const repository = database.createTenancyRepository(persistence, {
+    onEvent: (event) => events.push(event),
+  });
+  assert.equal(typeof repository.updateWorkspace, "function");
+  const input = organizationInput();
+  const tenant = await repository.bootstrapOrganization(input);
+  const context = {
+    organizationId: tenant.organization.id,
+    actorUserId: input.actorUserId,
+    correlationId: "workspace-request",
+  };
+  const createInput = {
+    name: "Primary Store",
+    slug: "primary-store",
+    idempotencyKey: "workspace-create-1",
+  };
+
+  const first = await repository.createWorkspace(context, createInput);
+  const replay = await repository.createWorkspace(context, createInput);
+  const updated = await repository.updateWorkspace(context, {
+    workspaceId: first.id,
+    name: "Primary Catalog",
+    expectedVersion: 1,
+  });
+
+  assert.deepEqual(replay, first);
+  assert.equal(state.workspaceInsertAttempts, 1);
+  assert.equal(updated.name, "Primary Catalog");
+  assert.equal(updated.version, 2);
+  await assert.rejects(
+    repository.updateWorkspace(context, {
+      workspaceId: first.id,
+      name: "Stale Name",
+      expectedVersion: 1,
+    }),
+    { code: "TENANCY_VERSION_CONFLICT" },
+  );
+  const archived = await repository.archiveWorkspace(context, {
+    workspaceId: first.id,
+    expectedVersion: 2,
+  });
+  assert.equal(archived.status, "archived");
+  assert.equal(archived.version, 3);
+  assert.deepEqual(
+    events.map(({ type, outcome }) => ({ type, outcome })),
+    [
+      { type: "organization.created.v1", outcome: "succeeded" },
+      { type: "workspace.created.v1", outcome: "succeeded" },
+      { type: "workspace.updated.v1", outcome: "succeeded" },
+      { type: "workspace.deleted.v1", outcome: "succeeded" },
+    ],
+  );
+});
+
+test("membership roles: resolution combines active organization and requested workspace roles only", async () => {
+  const { persistence } = inMemoryBootstrapPersistence();
+  const repository = database.createTenancyRepository(persistence);
+  assert.equal(typeof repository.resolveActiveRoles, "function");
+  const input = organizationInput();
+  const tenant = await repository.bootstrapOrganization(input);
+  const context = {
+    organizationId: tenant.organization.id,
+    actorUserId: input.actorUserId,
+    correlationId: "membership-request",
+  };
+  const memberUserId = database.createUuidV7();
+  const primary = await repository.createWorkspace(context, {
+    name: "Primary Store",
+    slug: "primary-store",
+    idempotencyKey: "workspace-primary",
+  });
+  const secondary = await repository.createWorkspace(context, {
+    name: "Secondary Store",
+    slug: "secondary-store",
+    idempotencyKey: "workspace-secondary",
+  });
+  await repository.createMembership(context, {
+    userId: memberUserId,
+    role: "viewer",
+    idempotencyKey: "membership-organization",
+  });
+  const managerMembership = await repository.createMembership(context, {
+    userId: memberUserId,
+    workspaceId: primary.id,
+    role: "manager",
+    idempotencyKey: "membership-primary",
+  });
+  await repository.createMembership(context, {
+    userId: memberUserId,
+    workspaceId: secondary.id,
+    role: "operator",
+    idempotencyKey: "membership-secondary",
+  });
+
+  assert.deepEqual(await repository.resolveActiveRoles(context, { userId: memberUserId }), [
+    "viewer",
+  ]);
+  assert.deepEqual(
+    await repository.resolveActiveRoles(context, { userId: memberUserId, workspaceId: primary.id }),
+    ["viewer", "manager"],
+  );
+  assert.deepEqual(
+    await repository.resolveActiveRoles(context, {
+      userId: memberUserId,
+      workspaceId: secondary.id,
+    }),
+    ["viewer", "operator"],
+  );
+
+  const suspended = await repository.updateMembership(context, {
+    membershipId: managerMembership.id,
+    status: "suspended",
+    expectedVersion: 1,
+  });
+  assert.equal(suspended.version, 2);
+  assert.deepEqual(
+    await repository.resolveActiveRoles(context, { userId: memberUserId, workspaceId: primary.id }),
+    ["viewer"],
+  );
+});
+
+test("pagination: workspace lists use a bounded non-overlapping keyset cursor", async () => {
+  const { persistence } = inMemoryBootstrapPersistence();
+  const repository = database.createTenancyRepository(persistence);
+  assert.equal(typeof repository.listWorkspaces, "function");
+  const input = organizationInput();
+  const tenant = await repository.bootstrapOrganization(input);
+  const context = {
+    organizationId: tenant.organization.id,
+    actorUserId: input.actorUserId,
+    correlationId: "list-request",
+  };
+  for (const [name, slug] of [
+    ["Alpha", "alpha"],
+    ["Bravo", "bravo"],
+    ["Charlie", "charlie"],
+  ]) {
+    await repository.createWorkspace(context, {
+      name,
+      slug,
+      idempotencyKey: `workspace-${slug}`,
+    });
+  }
+
+  const firstPage = await repository.listWorkspaces(context, { limit: 2 });
+  const last = firstPage.at(-1);
+  const secondPage = await repository.listWorkspaces(context, {
+    limit: 2,
+    cursor: { createdAt: last.createdAt, id: last.id },
+  });
+
+  assert.equal(firstPage.length, 2);
+  assert.equal(secondPage.length, 1);
+  assert.equal(
+    firstPage.some(({ id }) => id === secondPage[0].id),
+    false,
+  );
+});
+
+test("organization lifecycle: updates use optimistic versions and archive is terminal", async () => {
+  const { persistence } = inMemoryBootstrapPersistence();
+  const repository = database.createTenancyRepository(persistence);
+  assert.equal(typeof repository.getOrganization, "function");
+  assert.equal(typeof repository.updateOrganization, "function");
+  assert.equal(typeof repository.archiveOrganization, "function");
+  const input = organizationInput();
+  const tenant = await repository.bootstrapOrganization(input);
+  const context = {
+    organizationId: tenant.organization.id,
+    actorUserId: input.actorUserId,
+    correlationId: "organization-request",
+  };
+
+  assert.deepEqual(await repository.getOrganization(context), tenant.organization);
+  const updated = await repository.updateOrganization(context, {
+    name: "Acme Catalog Team",
+    expectedVersion: 1,
+  });
+  assert.equal(updated.name, "Acme Catalog Team");
+  assert.equal(updated.version, 2);
+  await assert.rejects(
+    repository.updateOrganization(context, { name: "Stale", expectedVersion: 1 }),
+    { code: "TENANCY_VERSION_CONFLICT" },
+  );
+  const archived = await repository.archiveOrganization(context, { expectedVersion: 2 });
+  assert.equal(archived.status, "archived");
+  assert.equal(archived.version, 3);
+  assert.deepEqual(await repository.archiveOrganization(context, { expectedVersion: 2 }), archived);
+  await assert.rejects(
+    repository.updateOrganization(context, { name: "No revival", expectedVersion: 3 }),
+    { code: "TENANCY_CONFLICT" },
+  );
+});
+
+test("membership lifecycle: scoped get/list and idempotent revoke exclude active roles", async () => {
+  const { persistence } = inMemoryBootstrapPersistence();
+  const repository = database.createTenancyRepository(persistence);
+  assert.equal(typeof repository.getMembership, "function");
+  assert.equal(typeof repository.listMemberships, "function");
+  assert.equal(typeof repository.revokeMembership, "function");
+  const input = organizationInput();
+  const tenant = await repository.bootstrapOrganization(input);
+  const context = {
+    organizationId: tenant.organization.id,
+    actorUserId: input.actorUserId,
+    correlationId: "membership-lifecycle",
+  };
+  const memberUserId = database.createUuidV7();
+  const membership = await repository.createMembership(context, {
+    userId: memberUserId,
+    role: "viewer",
+    idempotencyKey: "membership-viewer",
+  });
+
+  assert.deepEqual(await repository.getMembership(context, membership.id), membership);
+  assert.equal((await repository.listMemberships(context, { limit: 10 })).length, 2);
+  const revoked = await repository.revokeMembership(context, {
+    membershipId: membership.id,
+    expectedVersion: 1,
+  });
+  assert.equal(revoked.status, "revoked");
+  assert.equal(revoked.version, 2);
+  assert.deepEqual(
+    await repository.revokeMembership(context, {
+      membershipId: membership.id,
+      expectedVersion: 1,
+    }),
+    revoked,
+  );
+  assert.deepEqual(await repository.resolveActiveRoles(context, { userId: memberUserId }), []);
+});
+
+test("database adapter: organization lookup emits a scoped Drizzle predicate", async () => {
+  assert.equal(typeof database.createDrizzleTenancyPersistence, "function");
+  const organizationId = database.createUuidV7();
+  const row = { id: organizationId };
+  let capturedWhere;
+  const fakeTransaction = {
+    select() {
+      return {
+        from() {
+          return {
+            where(expression) {
+              capturedWhere = expression;
+              return { limit: async () => [row] };
+            },
+          };
+        },
+      };
+    },
+  };
+  const persistence = database.createDrizzleTenancyPersistence({
+    db: { transaction: async (operation) => operation(fakeTransaction) },
+  });
+
+  const result = await persistence.transaction((transaction) =>
+    transaction.getOrganization(organizationId),
+  );
+
+  assert.equal(result, row);
+  assert.match(inspect(capturedWhere, { depth: 8 }), new RegExp(organizationId));
 });
