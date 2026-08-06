@@ -1,0 +1,18 @@
+# Normalize line endings to LF for all text files on checkout (task T004).
+#
+# Resolves the CI/local mismatch flagged in T003: without this file, Windows
+# checkouts get CRLF and `prettier --check .` (T001 gate, endOfLine: lf) can
+# disagree with a fresh Linux CI checkout of the same commit. This does not
+# rewrite existing tracked content; it governs future checkouts (including the
+# fresh checkout every CI run performs).
+* text=auto eol=lf
+
+# Explicit binary handling for common asset types, to be safe by default.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
