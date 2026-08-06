@@ -217,6 +217,37 @@ The owning domain defines retention. Deletion MUST preserve required audit refer
 
 Schema changes are forward-compatible expand/migrate/contract operations. New non-null columns require defaults or backfill stages. Destructive changes require backup verification, rollback strategy, and compatibility across one deployment window.
 
+## Implemented Physical Schema
+
+| Column | PostgreSQL type | Null | Rules |
+|---|---|---:|---|
+| `id` | `uuid` | No | Primary key; application-generated UUIDv7. |
+| `organization_id` | `uuid` | No | Restrictive foreign key to `organizations.id`; first tenant predicate. |
+| `name` | `text` | No | Trimmed; 1–200 characters. |
+| `slug` | `text` | No | Lowercase hyphenated identifier; at most 100 characters. |
+| `status` | `text` | No | `active` or `archived`; defaults to `active`. |
+| `idempotency_key` | `text` | No | 1–200 characters. |
+| `created_by_user_id` | `uuid` | No | Restrictive foreign key to `users.id`. |
+| `created_at` | `timestamptz` | No | Defaults to database UTC time. |
+| `updated_at` | `timestamptz` | No | Defaults to database UTC time; changed on mutation. |
+| `version` | `integer` | No | Positive optimistic-concurrency token; defaults to 1. |
+| `deleted_at` | `timestamptz` | Yes | Recoverable archive marker. |
+
+The implementation uniquely constrains `(organization_id, id)` for composite
+membership references, `(organization_id, slug)`, and
+`(organization_id, created_by_user_id, idempotency_key)`. Tenant lists use
+`(organization_id, created_at DESC, id DESC)` and retain lifecycle state so
+callers can distinguish active and recoverably archived rows.
+
+## Rollback
+
+The migration is additive and the preferred rollback is application rollback
+while retaining the compatible schema, or a reviewed corrective-forward
+migration. If an undeployed isolated database must be reversed, verify backup
+and operator approval first, then remove dependants in this exact order:
+`memberships`, then `workspaces`, then `organizations`. Never edit an applied
+migration or its journal entry.
+
 ## Revision History
 
 | Version | Date | Change | Authority |

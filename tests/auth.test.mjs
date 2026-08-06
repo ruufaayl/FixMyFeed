@@ -61,12 +61,15 @@ function captureAuth(overrides = {}) {
   return { captured, handler, integration };
 }
 
-test("schema: Better Auth owns exactly four documented core tables", () => {
+test("schema: Better Auth tables remain present in the aggregated documented schema", () => {
   assert.deepEqual(Object.keys(schema).sort(), [
     "authenticationVerifications",
+    "memberships",
+    "organizations",
     "sessions",
     "userIdentities",
     "users",
+    "workspaces",
   ]);
 
   assert.equal(tableName(users), "users");
@@ -269,10 +272,8 @@ test("migration: reviewed SQL creates only the four core auth tables", async () 
     migration,
     /\bDROP\b|organizations|memberships|roles|mfa|security_events|rate_limit/i,
   );
-  assert.deepEqual(
-    journal.entries.map((entry) => entry.tag),
-    ["0000_t011_better_auth"],
-  );
+  assert.equal(journal.entries[0]?.idx, 0);
+  assert.equal(journal.entries[0]?.tag, "0000_t011_better_auth");
 });
 
 test("dependencies: Better Auth packages are patch-pinned with the audited esbuild override", async () => {

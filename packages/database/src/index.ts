@@ -35,5 +35,60 @@ export { DEFAULT_MIGRATIONS_FOLDER, runDatabaseMigrations } from "./migrate.js";
 export type { MigrationEvent, MigrationResult, RunDatabaseMigrationsOptions } from "./migrate.js";
 export { schema } from "./schema.js";
 export { authenticationVerifications, sessions, userIdentities, users } from "./auth-schema.js";
+export {
+  MEMBERSHIP_ROLE,
+  MEMBERSHIP_STATUS,
+  ORGANIZATION_STATUS,
+  WORKSPACE_STATUS,
+  memberships,
+  organizations,
+  workspaces,
+} from "./tenancy-schema.js";
+export type {
+  Membership,
+  MembershipStatus,
+  NewMembership,
+  NewOrganization,
+  NewWorkspace,
+  Organization,
+  OrganizationStatus,
+  Workspace,
+  WorkspaceStatus,
+} from "./tenancy-schema.js";
+export { TENANCY_ERROR_CODE, TenancyError } from "./tenancy-errors.js";
+export type { TenancyErrorCode } from "./tenancy-errors.js";
+export {
+  createDrizzleTenancyPersistence,
+  createTenancyRepository,
+  normalizeTenancyName,
+  reportTenancyEvent,
+  validateExpectedVersion,
+  validateIdempotencyKey,
+  validateMembershipRole,
+  validateTenantContext,
+  validateTenancyListInput,
+  validateTenancySlug,
+} from "./tenancy-repository.js";
+export type {
+  BootstrapMembershipRecord,
+  BootstrapOrganizationRecord,
+  BootstrapOrganizationInput,
+  CreateMembershipInput,
+  CreateWorkspaceInput,
+  OrganizationBootstrapResult,
+  OrganizationBootstrapRepository,
+  OperationalTenancyRepository,
+  TenantContext,
+  TenancyDatabaseClient,
+  TenancyEvent,
+  TenancyListCursor,
+  TenancyListInput,
+  TenancyPersistence,
+  TenancyRepository,
+  TenancyRepositoryOptions,
+  TenancyTransaction,
+  UpdateMembershipInput,
+  UpdateWorkspaceInput,
+} from "./tenancy-repository.js";
 export { authAdapterSchema, createAuthDatabaseAdapter } from "./auth-adapter.js";
 export type { AuthDatabaseAdapter } from "./auth-adapter.js";
