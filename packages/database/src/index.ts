@@ -115,3 +115,19 @@ export type {
   SecurityEventStatus,
   SecurityEventType,
 } from "./session-security-schema.js";
+// T016 immutable audit logging.
+export {
+  AUDIT_ACTION_CATEGORIES,
+  AUDIT_ACTOR_TYPES,
+  AUDIT_OUTCOMES,
+  auditLogs,
+} from "./audit-schema.js";
+export type {
+  AuditActionCategory,
+  AuditActorType,
+  AuditLog,
+  AuditOutcome,
+  NewAuditLog,
+} from "./audit-schema.js";
+export { computeAuditHash, verifyAuditChain } from "./audit-hash.js";
+export type { AuditChainRecord, AuditChainVerification, AuditHashInput } from "./audit-hash.js";

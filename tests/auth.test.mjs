@@ -63,6 +63,7 @@ function captureAuth(overrides = {}) {
 
 test("schema: Better Auth tables remain present in the aggregated documented schema", () => {
   assert.deepEqual(Object.keys(schema).sort(), [
+    "auditLogs",
     "authenticationEvents",
     "authenticationVerifications",
     "memberships",

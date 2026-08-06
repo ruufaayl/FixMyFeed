@@ -322,6 +322,7 @@ test("schema: lifecycle catalogs are closed and schema aggregation is complete",
   assert.deepEqual(database.WORKSPACE_STATUS, ["active", "archived"]);
   assert.deepEqual(database.MEMBERSHIP_STATUS, ["active", "suspended", "revoked"]);
   assert.deepEqual(Object.keys(database.schema).sort(), [
+    "auditLogs",
     "authenticationEvents",
     "authenticationVerifications",
     "memberships",
