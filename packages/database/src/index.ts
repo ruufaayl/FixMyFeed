@@ -214,3 +214,31 @@ export type {
 } from "./tenant-repository.js";
 export { TENANT_REPOSITORY_ERROR_CODE, TenantRepositoryError } from "./tenant-repository-errors.js";
 export type { TenantRepositoryErrorCode } from "./tenant-repository-errors.js";
+// T022 transactional outbox and inbox.
+export { OUTBOX_STATUSES, inboxEvents, outboxEvents } from "./outbox-schema.js";
+export type {
+  InboxEvent,
+  NewInboxEvent,
+  NewOutboxEvent,
+  OutboxEvent,
+  OutboxStatus,
+} from "./outbox-schema.js";
+export {
+  OUTBOX_ERROR_CODE,
+  OutboxError,
+  consumeOnce,
+  createOutboxEvent,
+  createOutboxRelay,
+} from "./outbox.js";
+export type {
+  InboxPersistence,
+  NewOutboxEventInput,
+  OutboxErrorCode,
+  OutboxEventRecord,
+  OutboxPublisher,
+  OutboxRelay,
+  OutboxRelayEvent,
+  OutboxRelayOptions,
+  OutboxRelayPersistence,
+  OutboxRelayResult,
+} from "./outbox.js";

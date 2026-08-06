@@ -5,6 +5,7 @@ import { authenticationEvents, securityEvents } from "./session-security-schema.
 import { auditLogs } from "./audit-schema.js";
 import { encryptedCredentials } from "./credential-vault-schema.js";
 import { supportAccessGrants } from "./support-access-schema.js";
+import { inboxEvents, outboxEvents } from "./outbox-schema.js";
 
 export { authenticationVerifications, sessions, userIdentities, users } from "./auth-schema.js";
 export { memberships, organizations, workspaces } from "./tenancy-schema.js";
@@ -12,6 +13,7 @@ export { authenticationEvents, securityEvents } from "./session-security-schema.
 export { auditLogs } from "./audit-schema.js";
 export { encryptedCredentials } from "./credential-vault-schema.js";
 export { supportAccessGrants } from "./support-access-schema.js";
+export { inboxEvents, outboxEvents } from "./outbox-schema.js";
 
 export const schema = {
   users,
@@ -26,4 +28,6 @@ export const schema = {
   auditLogs,
   encryptedCredentials,
   supportAccessGrants,
+  outboxEvents,
+  inboxEvents,
 } as const;

@@ -190,8 +190,8 @@ This document is the implementation authority for Workstream Registry. It define
 | T016 | Implement immutable audit logging | E01 | Verified |
 | T017 | Implement support access grants | E01 | Verified |
 | T020 | Implement tenant-aware repositories | E02 | Verified |
-| T021 | Implement pg-boss queues and worker runtime | E02 | In Review |
-| T022 | Implement transactional outbox and event consumers | E02 | Not Started |
+| T021 | Implement pg-boss queues and worker runtime | E02 | Verified |
+| T022 | Implement transactional outbox and event consumers | E02 | Verified |
 | T023 | Implement object storage abstraction | E02 | Not Started |
 | T024 | Implement SMTP notification adapter | E02 | Not Started |
 | T025 | Implement idempotency and operation resources | E02 | Not Started |
