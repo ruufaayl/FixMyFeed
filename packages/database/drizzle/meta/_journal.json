@@ -29,6 +29,13 @@
       "when": 1786031815164,
       "tag": "0003_t016_immutable_audit_logs",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786036063842,
+      "tag": "0004_t015_encrypted_credential_vault",
+      "breakpoints": true
     }
   ]
 }
