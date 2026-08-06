@@ -9,7 +9,7 @@ name: CI
 #   pnpm run format:check
 #   pnpm run lint
 #   pnpm run typecheck
-#   node --test tests/boundaries.test.mjs tests/tooling.test.mjs tests/config.test.mjs tests/traceability.test.mjs tests/database.test.mjs tests/rbac.test.mjs tests/session-security.test.mjs tests/audit.test.mjs tests/credential-vault.test.mjs tests/tenancy.test.mjs tests/auth.test.mjs tests/support-access.test.mjs tests/tenant-repository.test.mjs
+#   node --test tests/boundaries.test.mjs tests/tooling.test.mjs tests/config.test.mjs tests/traceability.test.mjs tests/database.test.mjs tests/rbac.test.mjs tests/session-security.test.mjs tests/audit.test.mjs tests/credential-vault.test.mjs tests/tenancy.test.mjs tests/auth.test.mjs tests/support-access.test.mjs tests/tenant-repository.test.mjs tests/jobs.test.mjs
 #   pnpm run check:traceability
 #
 # The test files are listed explicitly (not `pnpm run test`) so CI exercises
@@ -69,7 +69,7 @@ jobs:
         run: pnpm run typecheck
 
       - name: Test
-        run: node --test tests/boundaries.test.mjs tests/tooling.test.mjs tests/config.test.mjs tests/traceability.test.mjs tests/database.test.mjs tests/rbac.test.mjs tests/session-security.test.mjs tests/audit.test.mjs tests/credential-vault.test.mjs tests/tenancy.test.mjs tests/auth.test.mjs tests/support-access.test.mjs tests/tenant-repository.test.mjs
+        run: node --test tests/boundaries.test.mjs tests/tooling.test.mjs tests/config.test.mjs tests/traceability.test.mjs tests/database.test.mjs tests/rbac.test.mjs tests/session-security.test.mjs tests/audit.test.mjs tests/credential-vault.test.mjs tests/tenancy.test.mjs tests/auth.test.mjs tests/support-access.test.mjs tests/tenant-repository.test.mjs tests/jobs.test.mjs
 
       - name: Generated traceability check
         run: pnpm run check:traceability
