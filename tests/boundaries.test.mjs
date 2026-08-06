@@ -58,9 +58,11 @@ test("boundaries.json: every id has an allowedDependencies entry referencing kno
 
 test("filesystem: workspaces on disk exactly match boundaries.json", () => {
   const onDiskApps = readdirSync(join(ROOT, "apps"), { withFileTypes: true })
-    .filter((d) => d.isDirectory()).map((d) => d.name);
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name);
   const onDiskPackages = readdirSync(join(ROOT, "packages"), { withFileTypes: true })
-    .filter((d) => d.isDirectory()).map((d) => d.name);
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name);
   assert.deepEqual([...onDiskApps].sort(), [...appIds].sort());
   assert.deepEqual([...onDiskPackages].sort(), [...packageIds].sort());
 });
@@ -101,13 +103,23 @@ test("invariant: domain is pure (no internal deps, no third-party runtime deps, 
   const pkg = readJson(join(ROOT, "packages/domain/package.json"));
   assert.deepEqual(boundaries.allowedDependencies.domain, [], "domain must allow no dependencies");
   assert.deepEqual(internalDeps(pkg), [], "domain must declare no internal dependencies");
-  assert.deepEqual(Object.keys(pkg.dependencies ?? {}), [], "domain must declare no runtime dependencies");
+  assert.deepEqual(
+    Object.keys(pkg.dependencies ?? {}),
+    [],
+    "domain must declare no runtime dependencies",
+  );
   assert.deepEqual(tsconfigRefIds("domain"), [], "domain must have no tsconfig references");
 });
 
 test("invariant: connector packages do not depend on application UI", () => {
-  assert.ok(!boundaries.allowedDependencies.connectors.includes("ui"), "connectors must not allow ui");
-  assert.ok(!tsconfigRefIds("connectors").includes("ui"), "connectors tsconfig must not reference ui");
+  assert.ok(
+    !boundaries.allowedDependencies.connectors.includes("ui"),
+    "connectors must not allow ui",
+  );
+  assert.ok(
+    !tsconfigRefIds("connectors").includes("ui"),
+    "connectors tsconfig must not reference ui",
+  );
 });
 
 test("invariant: no workspace depends on an application workspace", () => {
@@ -122,7 +134,9 @@ test("invariant: no workspace depends on an application workspace", () => {
 });
 
 test("invariant: the dependency graph is acyclic", () => {
-  const WHITE = 0, GRAY = 1, BLACK = 2;
+  const WHITE = 0,
+    GRAY = 1,
+    BLACK = 2;
   const color = new Map(allIds.map((id) => [id, WHITE]));
   const stack = [];
   const visit = (id) => {

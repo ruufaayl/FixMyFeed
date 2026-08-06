@@ -41,10 +41,45 @@
     "seo": ["domain", "contracts", "config", "observability"],
     "analytics": ["domain", "contracts", "config", "observability", "database"],
     "ui": ["domain", "contracts"],
-    "repairs": ["domain", "contracts", "config", "observability", "database", "connectors", "diagnostics"],
+    "repairs": [
+      "domain",
+      "contracts",
+      "config",
+      "observability",
+      "database",
+      "connectors",
+      "diagnostics"
+    ],
     "jobs": ["domain", "contracts", "config", "observability", "database"],
-    "web": ["domain", "contracts", "config", "observability", "database", "auth", "connectors", "diagnostics", "seo", "analytics", "ui", "repairs", "jobs"],
-    "worker": ["domain", "contracts", "config", "observability", "database", "auth", "connectors", "diagnostics", "seo", "analytics", "repairs", "jobs"],
+    "web": [
+      "domain",
+      "contracts",
+      "config",
+      "observability",
+      "database",
+      "auth",
+      "connectors",
+      "diagnostics",
+      "seo",
+      "analytics",
+      "ui",
+      "repairs",
+      "jobs"
+    ],
+    "worker": [
+      "domain",
+      "contracts",
+      "config",
+      "observability",
+      "database",
+      "auth",
+      "connectors",
+      "diagnostics",
+      "seo",
+      "analytics",
+      "repairs",
+      "jobs"
+    ],
     "maintenance": ["domain", "contracts", "config", "observability", "database", "jobs"]
   },
   "invariants": {

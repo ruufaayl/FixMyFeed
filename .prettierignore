@@ -1,0 +1,13 @@
+# Dependencies & build output
+node_modules/
+dist/
+**/*.tsbuildinfo
+.pnpm-store/
+
+# Lockfiles & generated
+pnpm-lock.yaml
+
+# Authoritative specification documents — reference material, not owned by tooling.
+# These are intentionally left untouched (a separate task governs their content).
+feed-doctor-implementation-specifications-v1.0.0/
+feed-doctor-specifications-foundation-v0.1.0/
