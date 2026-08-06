@@ -152,3 +152,111 @@ test("schema: tenant ownership, restrictive references, and lookup indexes are e
   assert.equal(workspaceConfig.checks.length, 5);
   assert.equal(membershipConfig.checks.length, 4);
 });
+
+test("validation: tenant context requires explicit UUID scope and bounded correlation", () => {
+  assert.equal(typeof database.validateTenantContext, "function");
+  const organizationId = database.createUuidV7();
+  const actorUserId = database.createUuidV7();
+
+  assert.deepEqual(
+    database.validateTenantContext({
+      organizationId,
+      actorUserId,
+      correlationId: " request-123 ",
+    }),
+    { organizationId, actorUserId, correlationId: "request-123" },
+  );
+
+  for (const invalidContext of [
+    undefined,
+    {},
+    { organizationId: "wrong", actorUserId, correlationId: "request-123" },
+    { organizationId, actorUserId: "wrong", correlationId: "request-123" },
+    { organizationId, actorUserId, correlationId: "" },
+    { organizationId, actorUserId, correlationId: "x".repeat(201) },
+  ]) {
+    assert.throws(
+      () => database.validateTenantContext(invalidContext),
+      (error) =>
+        error instanceof database.TenancyError &&
+        error.code === database.TENANCY_ERROR_CODE.TENANT_SCOPE_REQUIRED,
+    );
+  }
+});
+
+test("validation: names, slugs, idempotency keys, versions, roles, and pages are bounded", () => {
+  assert.equal(typeof database.normalizeTenancyName, "function");
+  assert.equal(database.normalizeTenancyName("  Acme Feed Team  "), "Acme Feed Team");
+  assert.equal(database.validateTenancySlug("acme-feed-team"), "acme-feed-team");
+  assert.equal(database.validateIdempotencyKey(" create-42 "), "create-42");
+  assert.equal(database.validateExpectedVersion(7), 7);
+  assert.equal(database.validateMembershipRole("security_administrator"), "security_administrator");
+  assert.deepEqual(database.validateTenancyListInput({ limit: 100 }), { limit: 100 });
+
+  for (const invalidName of ["", " ", "x".repeat(201)]) {
+    assert.throws(() => database.normalizeTenancyName(invalidName), {
+      code: "TENANCY_INVALID_INPUT",
+    });
+  }
+  for (const invalidSlug of ["Acme", "acme feed", "-acme", "acme-", "x".repeat(101)]) {
+    assert.throws(() => database.validateTenancySlug(invalidSlug), {
+      code: "TENANCY_INVALID_INPUT",
+    });
+  }
+  for (const invalidKey of ["", " ", "x".repeat(201)]) {
+    assert.throws(() => database.validateIdempotencyKey(invalidKey), {
+      code: "TENANCY_INVALID_INPUT",
+    });
+  }
+  for (const invalidVersion of [0, -1, 1.5, Number.NaN]) {
+    assert.throws(() => database.validateExpectedVersion(invalidVersion), {
+      code: "TENANCY_INVALID_INPUT",
+    });
+  }
+  assert.throws(() => database.validateMembershipRole("owner"), {
+    code: "TENANCY_INVALID_INPUT",
+  });
+  for (const invalidList of [{ limit: 0 }, { limit: 101 }, { limit: 1.5 }]) {
+    assert.throws(() => database.validateTenancyListInput(invalidList), {
+      code: "TENANCY_INVALID_INPUT",
+    });
+  }
+});
+
+test("redaction: tenancy errors expose stable codes without persistence details", () => {
+  assert.equal(typeof database.TenancyError, "function");
+  const visibleSecret = "database-password-must-not-leak";
+  const error = new database.TenancyError(database.TENANCY_ERROR_CODE.PERSISTENCE_FAILED, {
+    cause: new Error(`driver failed with ${visibleSecret}`),
+  });
+
+  assert.equal(error.name, "TenancyError");
+  assert.equal(error.code, "TENANCY_PERSISTENCE_FAILED");
+  assert.equal(error.message, "Tenancy persistence failed");
+  assert.doesNotMatch(JSON.stringify(error), new RegExp(visibleSecret));
+  assert.doesNotMatch(error.stack ?? "", new RegExp(visibleSecret));
+});
+
+test("event: observer failure cannot change the tenancy operation outcome", () => {
+  assert.equal(typeof database.reportTenancyEvent, "function");
+  const event = {
+    type: "organization.created.v1",
+    outcome: "succeeded",
+    actorUserId: database.createUuidV7(),
+    organizationId: database.createUuidV7(),
+    resourceType: "organization",
+    resourceId: database.createUuidV7(),
+    version: 1,
+    correlationId: "request-123",
+  };
+  let observed;
+
+  assert.doesNotThrow(() =>
+    database.reportTenancyEvent((value) => {
+      observed = value;
+      throw new Error("telemetry unavailable");
+    }, event),
+  );
+  assert.deepEqual(observed, event);
+  assert.equal(Object.isFrozen(observed), true);
+});

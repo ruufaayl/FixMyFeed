@@ -55,5 +55,32 @@ export type {
   Workspace,
   WorkspaceStatus,
 } from "./tenancy-schema.js";
+export { TENANCY_ERROR_CODE, TenancyError } from "./tenancy-errors.js";
+export type { TenancyErrorCode } from "./tenancy-errors.js";
+export {
+  normalizeTenancyName,
+  reportTenancyEvent,
+  validateExpectedVersion,
+  validateIdempotencyKey,
+  validateMembershipRole,
+  validateTenantContext,
+  validateTenancyListInput,
+  validateTenancySlug,
+} from "./tenancy-repository.js";
+export type {
+  BootstrapOrganizationInput,
+  CreateMembershipInput,
+  CreateWorkspaceInput,
+  OrganizationBootstrapResult,
+  TenantContext,
+  TenancyDatabaseClient,
+  TenancyEvent,
+  TenancyListCursor,
+  TenancyListInput,
+  TenancyRepository,
+  TenancyRepositoryOptions,
+  UpdateMembershipInput,
+  UpdateWorkspaceInput,
+} from "./tenancy-repository.js";
 export { authAdapterSchema, createAuthDatabaseAdapter } from "./auth-adapter.js";
 export type { AuthDatabaseAdapter } from "./auth-adapter.js";
