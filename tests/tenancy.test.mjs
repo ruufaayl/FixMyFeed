@@ -6,6 +6,7 @@
  * memberships.md, F005, and F006.
  */
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { test } from "node:test";
 import { inspect } from "node:util";
@@ -896,4 +897,79 @@ test("database adapter: organization lookup emits a scoped Drizzle predicate", a
 
   assert.equal(result, row);
   assert.match(inspect(capturedWhere, { depth: 8 }), new RegExp(organizationId));
+});
+
+test("migration: reviewed additive SQL creates only the documented tenancy tables", async () => {
+  const migration = await readFile(
+    new URL(
+      "../packages/database/drizzle/0001_t012_organizations_workspaces_memberships.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  ).catch(() => undefined);
+  assert.equal(typeof migration, "string", "T012 migration must exist");
+
+  assert.deepEqual(
+    [...migration.matchAll(/CREATE TABLE "([^"]+)"/g)].map((match) => match[1]).sort(),
+    ["memberships", "organizations", "workspaces"],
+  );
+  assert.doesNotMatch(migration, /\bDROP\b/i);
+  assert.match(migration, /ON DELETE restrict/);
+  assert.match(
+    migration,
+    /FOREIGN KEY \("organization_id","workspace_id"\) REFERENCES "public"\."workspaces"\("organization_id","id"\)/,
+  );
+  for (const role of [
+    "viewer",
+    "operator",
+    "manager",
+    "approver",
+    "administrator",
+    "security_administrator",
+    "billing_administrator",
+    "platform_operator",
+  ]) {
+    assert.match(migration, new RegExp(`'${role}'`));
+  }
+  for (const indexName of [
+    "workspaces_organization_created_at_id_idx",
+    "memberships_organization_created_at_id_idx",
+    "memberships_organization_user_unique",
+    "memberships_workspace_user_unique",
+  ]) {
+    assert.match(migration, new RegExp(`CREATE (?:UNIQUE )?INDEX "${indexName}"`));
+  }
+});
+
+test("registry: tenancy table authorities match concrete column counts and rollback order", async () => {
+  const specificationRoot = new URL(
+    "../feed-doctor-implementation-specifications-v1.0.0/feed-doctor-specifications-implementation-v1.0.0/",
+    import.meta.url,
+  );
+  const registry = await readFile(
+    new URL("docs/07-data-architecture/PHYSICAL_SCHEMA_REGISTRY.md", specificationRoot),
+    "utf8",
+  );
+  const expectations = [
+    ["organizations", 10],
+    ["workspaces", 11],
+    ["memberships", 12],
+  ];
+
+  for (const [table, count] of expectations) {
+    assert.match(
+      registry,
+      new RegExp(`\\| \x60identity-and-tenancy\x60 \\| \x60${table}\x60 \\| ${count} \\|`),
+    );
+    const authority = await readFile(
+      new URL(
+        `docs/07-data-architecture/tables/identity-and-tenancy/${table}.md`,
+        specificationRoot,
+      ),
+      "utf8",
+    );
+    assert.match(authority, /## Implemented Physical Schema/);
+    assert.match(authority, /## Rollback/);
+    assert.match(authority, /memberships.*workspaces.*organizations/s);
+  }
 });

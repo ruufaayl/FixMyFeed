@@ -63,6 +63,23 @@ may extend session policy, MFA, and security telemetry without replacing these
 tables. Provider tokens, credential hashes, session tokens, and verification
 values must never be emitted to logs or migration events.
 
+## Tenancy repository
+
+T012 owns `organizations`, `workspaces`, and `memberships`. Construct the
+production adapter with `createDrizzleTenancyPersistence(db)` and pass it to
+`createTenancyRepository`. Every tenant-owned operation requires an explicit
+`organizationId`; workspace and membership lookups retain that predicate even
+when a globally unique identifier is supplied. Membership roles use the
+canonical identifiers exported by `@fixmyfeed/domain`, and membership role
+resolution returns only active, non-deleted rows.
+
+Organization creation and its first organization-wide `administrator`
+membership are one transaction. Callers provide bounded idempotency keys for
+safe retries. Updates use the persisted `version` for optimistic concurrency,
+lists use tenant-first keyset pagination, and archive or revoke operations are
+recoverable soft deletes. Repository errors expose stable tenancy codes and
+redact unknown persistence failures.
+
 ## Failure behavior
 
 Client validation accepts only PostgreSQL URLs and bounded pools. Construction

@@ -8,6 +8,13 @@
       "when": 1786011445023,
       "tag": "0000_t011_better_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786027461324,
+      "tag": "0001_t012_organizations_workspaces_memberships",
+      "breakpoints": true
     }
   ]
 }

@@ -206,7 +206,7 @@ test("contract: migration commands use reviewed files and expose no schema push 
   assert.equal(packageJson.scripts["db:push"], undefined);
   assert.deepEqual(
     journal.entries.map((entry) => entry.tag),
-    ["0000_t011_better_auth"],
+    ["0000_t011_better_auth", "0001_t012_organizations_workspaces_memberships"],
   );
   assert.match(config, /strict: true/);
   assert.match(config, /schema: "\.\/src\/schema\.ts"/);

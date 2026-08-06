@@ -176,11 +176,11 @@ This document is the implementation authority for Physical Schema Registry. It d
 
 | Domain | Table | Documented columns | Specification |
 |---|---|---:|---|
-| `identity-and-tenancy` | `organizations` | 15 | `docs/07-data-architecture/tables/identity-and-tenancy/organizations.md` |
-| `identity-and-tenancy` | `workspaces` | 14 | `docs/07-data-architecture/tables/identity-and-tenancy/workspaces.md` |
+| `identity-and-tenancy` | `organizations` | 10 | `docs/07-data-architecture/tables/identity-and-tenancy/organizations.md` |
+| `identity-and-tenancy` | `workspaces` | 11 | `docs/07-data-architecture/tables/identity-and-tenancy/workspaces.md` |
 | `identity-and-tenancy` | `users` | 7 | `docs/07-data-architecture/tables/identity-and-tenancy/users.md` |
 | `identity-and-tenancy` | `user_identities` | 13 | `docs/07-data-architecture/tables/identity-and-tenancy/user-identities.md` |
-| `identity-and-tenancy` | `memberships` | 13 | `docs/07-data-architecture/tables/identity-and-tenancy/memberships.md` |
+| `identity-and-tenancy` | `memberships` | 12 | `docs/07-data-architecture/tables/identity-and-tenancy/memberships.md` |
 | `identity-and-tenancy` | `roles` | 15 | `docs/07-data-architecture/tables/identity-and-tenancy/roles.md` |
 | `identity-and-tenancy` | `permissions` | 15 | `docs/07-data-architecture/tables/identity-and-tenancy/permissions.md` |
 | `identity-and-tenancy` | `role_permissions` | 15 | `docs/07-data-architecture/tables/identity-and-tenancy/role-permissions.md` |
