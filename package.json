@@ -20,7 +20,8 @@
     "test:boundaries": "node --test tests/boundaries.test.mjs",
     "test:tooling": "node --test tests/tooling.test.mjs",
     "test": "node --test tests/boundaries.test.mjs tests/tooling.test.mjs",
-    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test",
+    "check:traceability": "node tools/traceability/check.mjs",
+    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run check:traceability",
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
