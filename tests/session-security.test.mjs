@@ -103,10 +103,8 @@ test("migration journal records the 0002 entry in order", () => {
   const journal = JSON.parse(
     readFileSync(join(ROOT, "packages/database/drizzle/meta/_journal.json"), "utf8"),
   );
+  // T014 owns migration 0002; verify it at its fixed index so later migrations
+  // (0003+) do not break this test.
   const tags = journal.entries.map((e) => e.tag);
-  assert.deepEqual(tags, [
-    "0000_t011_better_auth",
-    "0001_t012_organizations_workspaces_memberships",
-    "0002_t014_sessions_mfa_security_events",
-  ]);
+  assert.equal(tags[2], "0002_t014_sessions_mfa_security_events");
 });
