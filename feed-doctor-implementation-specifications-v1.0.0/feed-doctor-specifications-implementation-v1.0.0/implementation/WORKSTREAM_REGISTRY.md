@@ -187,7 +187,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T013 | Implement RBAC and permission evaluation | E01 | Verified |
 | T014 | Implement sessions MFA and security events | E01 | Verified |
 | T015 | Implement encrypted credential vault | E01 | Not Started |
-| T016 | Implement immutable audit logging | E01 | In Review |
+| T016 | Implement immutable audit logging | E01 | Verified |
 | T017 | Implement support access grants | E01 | Not Started |
 | T020 | Implement tenant-aware repositories | E02 | Not Started |
 | T021 | Implement pg-boss queues and worker runtime | E02 | Not Started |
