@@ -1,8 +1,9 @@
 # Database package
 
-This package is FixMyFeed's only SQL boundary. T010 establishes the typed
-PostgreSQL/Drizzle framework and deliberately creates no business tables;
-table-owning tasks add approved definitions through `src/schema.ts`.
+This package is FixMyFeed's only SQL boundary. T010 established the typed
+PostgreSQL/Drizzle framework; table-owning tasks add approved definitions
+through `src/schema.ts`. T011 adds the four Better Auth core tables and keeps
+the official Better Auth Drizzle adapter behind this boundary.
 
 ## Schema conventions
 
@@ -46,8 +47,21 @@ migration. Before deployment, record one of:
 - restoration into an isolated database followed by verified recovery.
 
 Never delete a migration journal entry, edit an applied migration, or issue an
-unreviewed destructive statement. T010's baseline journal has zero migrations,
-so its rollback is removal of the framework before any migration is applied.
+unreviewed destructive statement. Rolling back T011 after its migration has
+been applied is destructive and requires backup verification plus explicit
+operator approval. The reverse dependency order is
+`authentication_verifications`, `sessions`, `user_identities`, then `users`;
+prefer a corrective forward migration or application rollback that retains the
+backwards-compatible schema.
+
+## Better Auth schema ownership
+
+The Better Auth core owns `users`, `user_identities`, `sessions`, and
+`authentication_verifications`. These are global authentication records;
+tenant authorization is added through organization membership by T012. T014
+may extend session policy, MFA, and security telemetry without replacing these
+tables. Provider tokens, credential hashes, session tokens, and verification
+values must never be emitted to logs or migration events.
 
 ## Failure behavior
 

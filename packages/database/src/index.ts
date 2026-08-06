@@ -34,3 +34,6 @@ export {
 export { DEFAULT_MIGRATIONS_FOLDER, runDatabaseMigrations } from "./migrate.js";
 export type { MigrationEvent, MigrationResult, RunDatabaseMigrationsOptions } from "./migrate.js";
 export { schema } from "./schema.js";
+export { authenticationVerifications, sessions, userIdentities, users } from "./auth-schema.js";
+export { authAdapterSchema, createAuthDatabaseAdapter } from "./auth-adapter.js";
+export type { AuthDatabaseAdapter } from "./auth-adapter.js";

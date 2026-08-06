@@ -37,11 +37,11 @@ This document is the implementation authority for Table Specification — User I
 
 ## Functional Requirements
 
-- The table MUST store only the `user-identities` entity or relationship described by its owning domain.
-- All tenant reads and writes MUST include organization scope in repository methods.
-- Foreign keys MUST use restrictive deletion by default; cascade requires explicit lifecycle justification.
-- Write paths MUST use optimistic concurrency or immutable append semantics.
-- Provider payloads MUST be minimized and versioned.
+- The table MUST implement Better Auth's account model and link a provider account to one global `users` row.
+- The `(provider_id, account_id)` pair MUST remain unique.
+- The `user_id` foreign key MUST use restrictive deletion until an explicit account-erasure workflow is implemented.
+- Password credentials MAY be stored only as Better Auth password hashes; plaintext credentials are prohibited.
+- Social providers remain disabled in T011. Token columns MUST remain null until a provider adapter with approved encrypted token storage is introduced.
 
 ## Non-functional Requirements
 
@@ -60,10 +60,10 @@ This document is the implementation authority for Table Specification — User I
 
 ## Validation Rules
 
-- Reject foreign keys that do not belong to the same organization.
-- Reject invalid state transitions at the service and database-constraint layer where expressible.
-- Reject empty provider identifiers, malformed URLs, invalid timestamps, and oversized metadata.
-- Uniqueness conflicts return the canonical conflict error and are safe to retry when idempotency keys match.
+- Reject missing provider, account, or user identifiers.
+- Reject identities whose `user_id` does not reference an existing user.
+- Reject duplicate `(provider_id, account_id)` pairs.
+- Reject plaintext token or password logging at every adapter boundary.
 
 ## Loading States
 
@@ -179,34 +179,25 @@ This document is the implementation authority for Table Specification — User I
 | Column | Type | Null | Rules |
 |---|---|---:|---|
 | `id` | UUIDv7 | No | Primary key; application generated. |
-| `organization_id` | UUIDv7 | Conditional | Required for tenant-owned rows; indexed first. |
+| `account_id` | text | No | Provider-owned account identifier. |
+| `provider_id` | text | No | Better Auth provider identifier. |
+| `user_id` | UUIDv7 | No | References `users.id`; restrictive delete. |
+| `access_token` | text | Yes | Disabled for T011 password auth; encrypted storage required before use. |
+| `refresh_token` | text | Yes | Disabled for T011 password auth; encrypted storage required before use. |
+| `id_token` | text | Yes | Disabled for T011 password auth; encrypted storage required before use. |
+| `access_token_expires_at` | timestamptz | Yes | Provider access-token expiration. |
+| `refresh_token_expires_at` | timestamptz | Yes | Provider refresh-token expiration. |
+| `scope` | text | Yes | Provider scope string. |
+| `password` | text | Yes | Better Auth password hash; never plaintext. |
 | `created_at` | timestamptz | No | Database UTC timestamp. |
 | `updated_at` | timestamptz | No | Changes on every mutation. |
-| `version` | integer | No | Starts at 1; optimistic concurrency. |
-| `deleted_at` | timestamptz | Yes | Present only when lifecycle permits recoverable deletion. |
-| `natural_key` | text or composite | Conditional | Unique within tenant and source namespace where a stable business identity exists. |
-| `status` | text enum | Conditional | Uses the entity lifecycle defined by the owning domain specification. |
-| `metadata` | jsonb | Yes | Versioned extension data only; not a substitute for normalized query fields. |
-
-## Entity-Specific Columns
-
-| Column | Type | Null | Rules |
-|---|---|---:|---|
-| `name` | text | No | 1–200 characters; trimmed. |
-| `status` | text | No | Validated lifecycle enum. |
-| `workspace_id` | uuid | Yes | Same-tenant workspace foreign key. |
-| `user_id` | uuid | Yes | User foreign key or null for system actor. |
-| `email` | citext | Yes | Normalized mailbox; encrypted or access restricted where needed. |
-| `scope` | text[] | Yes | Validated allowed capability identifiers. |
-| `expires_at` | timestamptz | Yes | Expiration or retention boundary. |
 
 ## Constraints and Indexes
 
-- Unique and foreign-key constraints are tenant-aware.
-- Primary list index: `(organization_id, created_at DESC, id DESC)`.
-- Entity-specific lookup indexes follow the access patterns in the related API document.
-- Partial indexes are used for active, pending, failed, or unresolved states where selectivity is proven.
-- Sensitive provider identifiers are hashed for lookup when plaintext is not required.
+- Primary key: `user_identities_pkey (id)`.
+- Unique lookup: `user_identities_provider_account_unique (provider_id, account_id)`.
+- User lookup: `user_identities_user_id_idx (user_id)`.
+- Foreign key: `user_identities.user_id -> users.id ON DELETE RESTRICT`.
 
 ## Retention and Deletion
 

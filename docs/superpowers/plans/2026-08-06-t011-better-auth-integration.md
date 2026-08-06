@@ -326,4 +326,3 @@ Expected: all commands pass; status contains only the reviewed T011 files.
 ### Step 4: Commit, push, and open the PR
 
 Commit all implementation changes with a T011 message, push `codex/T011-better-auth-integration`, and open a pull request against `develop` with T011 in the title. The PR body must include changed files, requirements, tests/results, limitations, migrations, environment variables, rollback, dependency evidence, and acceptance evidence. Do not merge the PR.
-

@@ -13,12 +13,12 @@ Provide a production-shaped, self-hosted Better Auth integration backed by the e
 
 Use Better Auth's official Drizzle adapter and map its four core models to documented FixMyFeed tables:
 
-| Better Auth model | FixMyFeed table |
-|---|---|
-| `user` | `users` |
-| `account` | `user_identities` |
-| `session` | `sessions` |
-| `verification` | `authentication_verifications` |
+| Better Auth model | FixMyFeed table                |
+| ----------------- | ------------------------------ |
+| `user`            | `users`                        |
+| `account`         | `user_identities`              |
+| `session`         | `sessions`                     |
+| `verification`    | `authentication_verifications` |
 
 The missing verification table is added to the Physical Schema Registry and receives its own table specification. The existing three table specifications are narrowed from generic placeholder columns to the actual Better Auth storage contract. Auth tables are global identity records; tenant authorization remains expressed through T012 memberships rather than a nullable or inferred tenant on authentication rows.
 
@@ -118,4 +118,3 @@ T011 owns only Better Auth core integration and its four persistence models. It 
 - enhanced session lifecycle, MFA, authentication/security event recording, and account-takeover controls to T014;
 - SMTP delivery to T024;
 - Next.js route mounting and authentication UI to the relevant web/application tasks.
-

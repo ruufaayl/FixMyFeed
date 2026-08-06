@@ -37,11 +37,11 @@ This document is the implementation authority for Table Specification — Sessio
 
 ## Functional Requirements
 
-- The table MUST store only the `sessions` entity or relationship described by its owning domain.
-- All tenant reads and writes MUST include organization scope in repository methods.
-- Foreign keys MUST use restrictive deletion by default; cascade requires explicit lifecycle justification.
-- Write paths MUST use optimistic concurrency or immutable append semantics.
-- Provider payloads MUST be minimized and versioned.
+- The table MUST implement Better Auth's baseline server-side session model.
+- Session tokens MUST be cryptographically random and globally unique.
+- The `user_id` foreign key MUST use restrictive deletion until an explicit account-erasure workflow is implemented.
+- Cookie cache MUST remain disabled so session validation is server-side for every authenticated request.
+- T011 MUST NOT add organization selection, impersonation, MFA state, risk state, or session-family state; T014 owns those extensions.
 
 ## Non-functional Requirements
 
@@ -60,10 +60,10 @@ This document is the implementation authority for Table Specification — Sessio
 
 ## Validation Rules
 
-- Reject foreign keys that do not belong to the same organization.
-- Reject invalid state transitions at the service and database-constraint layer where expressible.
-- Reject empty provider identifiers, malformed URLs, invalid timestamps, and oversized metadata.
-- Uniqueness conflicts return the canonical conflict error and are safe to retry when idempotency keys match.
+- Reject empty tokens and invalid expiration timestamps.
+- Reject sessions whose `user_id` does not reference an existing user.
+- Expired sessions MUST never authenticate a request and MAY be deleted asynchronously.
+- Duplicate token conflicts MUST fail closed and MUST NOT replace the existing session.
 
 ## Loading States
 
@@ -179,34 +179,21 @@ This document is the implementation authority for Table Specification — Sessio
 | Column | Type | Null | Rules |
 |---|---|---:|---|
 | `id` | UUIDv7 | No | Primary key; application generated. |
-| `organization_id` | UUIDv7 | Conditional | Required for tenant-owned rows; indexed first. |
+| `expires_at` | timestamptz | No | Server-side expiration boundary. |
+| `token` | text | No | Cryptographically random; globally unique. |
 | `created_at` | timestamptz | No | Database UTC timestamp. |
 | `updated_at` | timestamptz | No | Changes on every mutation. |
-| `version` | integer | No | Starts at 1; optimistic concurrency. |
-| `deleted_at` | timestamptz | Yes | Present only when lifecycle permits recoverable deletion. |
-| `natural_key` | text or composite | Conditional | Unique within tenant and source namespace where a stable business identity exists. |
-| `status` | text enum | Conditional | Uses the entity lifecycle defined by the owning domain specification. |
-| `metadata` | jsonb | Yes | Versioned extension data only; not a substitute for normalized query fields. |
-
-## Entity-Specific Columns
-
-| Column | Type | Null | Rules |
-|---|---|---:|---|
-| `name` | text | No | 1–200 characters; trimmed. |
-| `status` | text | No | Validated lifecycle enum. |
-| `workspace_id` | uuid | Yes | Same-tenant workspace foreign key. |
-| `user_id` | uuid | Yes | User foreign key or null for system actor. |
-| `email` | citext | Yes | Normalized mailbox; encrypted or access restricted where needed. |
-| `scope` | text[] | Yes | Validated allowed capability identifiers. |
-| `expires_at` | timestamptz | Yes | Expiration or retention boundary. |
+| `ip_address` | text | Yes | Request IP when available; sensitive operational data. |
+| `user_agent` | text | Yes | Request user-agent when available. |
+| `user_id` | UUIDv7 | No | References `users.id`; restrictive delete. |
 
 ## Constraints and Indexes
 
-- Unique and foreign-key constraints are tenant-aware.
-- Primary list index: `(organization_id, created_at DESC, id DESC)`.
-- Entity-specific lookup indexes follow the access patterns in the related API document.
-- Partial indexes are used for active, pending, failed, or unresolved states where selectivity is proven.
-- Sensitive provider identifiers are hashed for lookup when plaintext is not required.
+- Primary key: `sessions_pkey (id)`.
+- Unique lookup: `sessions_token_unique (token)`.
+- User lookup: `sessions_user_id_idx (user_id)`.
+- Expiration cleanup: `sessions_expires_at_idx (expires_at)`.
+- Foreign key: `sessions.user_id -> users.id ON DELETE RESTRICT`.
 
 ## Retention and Deletion
 
