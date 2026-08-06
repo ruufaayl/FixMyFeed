@@ -16,6 +16,10 @@
     "build": "tsc -b",
     "clean": "tsc -b --clean"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@fixmyfeed/config": "workspace:*",
+    "@fixmyfeed/database": "workspace:*",
+    "better-auth": "1.6.26"
+  },
   "devDependencies": {}
 }

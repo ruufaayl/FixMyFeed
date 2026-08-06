@@ -204,7 +204,10 @@ test("contract: migration commands use reviewed files and expose no schema push 
   assert.match(packageJson.scripts["db:check"], /drizzle-kit check/);
   assert.match(packageJson.scripts["db:migrate"], /drizzle-kit migrate/);
   assert.equal(packageJson.scripts["db:push"], undefined);
-  assert.deepEqual(journal.entries, []);
+  assert.deepEqual(
+    journal.entries.map((entry) => entry.tag),
+    ["0000_t011_better_auth"],
+  );
   assert.match(config, /strict: true/);
   assert.match(config, /schema: "\.\/src\/schema\.ts"/);
   assert.match(config, /table: "__drizzle_migrations"/);

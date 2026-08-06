@@ -37,11 +37,11 @@ This document is the implementation authority for Table Specification — Users.
 
 ## Functional Requirements
 
-- The table MUST store only the `users` entity or relationship described by its owning domain.
-- All tenant reads and writes MUST include organization scope in repository methods.
-- Foreign keys MUST use restrictive deletion by default; cascade requires explicit lifecycle justification.
-- Write paths MUST use optimistic concurrency or immutable append semantics.
-- Provider payloads MUST be minimized and versioned.
+- The table MUST store the global Better Auth user identity; organization membership is modeled by T012 and MUST NOT be embedded here.
+- Email addresses MUST be normalized before persistence and remain globally unique.
+- Password-based sign-in MUST require a verified email before a session can be issued.
+- Authentication writes MUST use the approved Better Auth Drizzle adapter so related user, identity, verification, and session operations preserve adapter transaction semantics.
+- The table MUST NOT store passwords, provider tokens, organization roles, or authorization grants.
 
 ## Non-functional Requirements
 
@@ -60,10 +60,10 @@ This document is the implementation authority for Table Specification — Users.
 
 ## Validation Rules
 
-- Reject foreign keys that do not belong to the same organization.
-- Reject invalid state transitions at the service and database-constraint layer where expressible.
-- Reject empty provider identifiers, malformed URLs, invalid timestamps, and oversized metadata.
-- Uniqueness conflicts return the canonical conflict error and are safe to retry when idempotency keys match.
+- Reject empty or malformed email addresses before persistence.
+- Normalize an email address before evaluating `users_email_unique`.
+- Reject names outside Better Auth's validated user contract.
+- Uniqueness conflicts return the canonical conflict error without revealing whether an account exists.
 
 ## Loading States
 
@@ -179,34 +179,19 @@ This document is the implementation authority for Table Specification — Users.
 | Column | Type | Null | Rules |
 |---|---|---:|---|
 | `id` | UUIDv7 | No | Primary key; application generated. |
-| `organization_id` | UUIDv7 | Conditional | Required for tenant-owned rows; indexed first. |
+| `name` | text | No | Better Auth display name. |
+| `email` | text | No | Normalized mailbox; globally unique. |
+| `email_verified` | boolean | No | Defaults to false. |
+| `image` | text | Yes | Optional profile-image URL. |
 | `created_at` | timestamptz | No | Database UTC timestamp. |
 | `updated_at` | timestamptz | No | Changes on every mutation. |
-| `version` | integer | No | Starts at 1; optimistic concurrency. |
-| `deleted_at` | timestamptz | Yes | Present only when lifecycle permits recoverable deletion. |
-| `natural_key` | text or composite | Conditional | Unique within tenant and source namespace where a stable business identity exists. |
-| `status` | text enum | Conditional | Uses the entity lifecycle defined by the owning domain specification. |
-| `metadata` | jsonb | Yes | Versioned extension data only; not a substitute for normalized query fields. |
-
-## Entity-Specific Columns
-
-| Column | Type | Null | Rules |
-|---|---|---:|---|
-| `name` | text | No | 1–200 characters; trimmed. |
-| `status` | text | No | Validated lifecycle enum. |
-| `workspace_id` | uuid | Yes | Same-tenant workspace foreign key. |
-| `user_id` | uuid | Yes | User foreign key or null for system actor. |
-| `email` | citext | Yes | Normalized mailbox; encrypted or access restricted where needed. |
-| `scope` | text[] | Yes | Validated allowed capability identifiers. |
-| `expires_at` | timestamptz | Yes | Expiration or retention boundary. |
 
 ## Constraints and Indexes
 
-- Unique and foreign-key constraints are tenant-aware.
-- Primary list index: `(organization_id, created_at DESC, id DESC)`.
-- Entity-specific lookup indexes follow the access patterns in the related API document.
-- Partial indexes are used for active, pending, failed, or unresolved states where selectivity is proven.
-- Sensitive provider identifiers are hashed for lookup when plaintext is not required.
+- Primary key: `users_pkey (id)`.
+- Unique lookup: `users_email_unique (email)`.
+- Organization access is joined through the membership relation introduced by T012.
+- The authentication adapter MUST select only the columns defined above.
 
 ## Retention and Deletion
 

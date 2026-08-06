@@ -178,7 +178,7 @@ This document is the implementation authority for Physical Schema Registry. It d
 |---|---|---:|---|
 | `identity-and-tenancy` | `organizations` | 15 | `docs/07-data-architecture/tables/identity-and-tenancy/organizations.md` |
 | `identity-and-tenancy` | `workspaces` | 14 | `docs/07-data-architecture/tables/identity-and-tenancy/workspaces.md` |
-| `identity-and-tenancy` | `users` | 13 | `docs/07-data-architecture/tables/identity-and-tenancy/users.md` |
+| `identity-and-tenancy` | `users` | 7 | `docs/07-data-architecture/tables/identity-and-tenancy/users.md` |
 | `identity-and-tenancy` | `user_identities` | 13 | `docs/07-data-architecture/tables/identity-and-tenancy/user-identities.md` |
 | `identity-and-tenancy` | `memberships` | 13 | `docs/07-data-architecture/tables/identity-and-tenancy/memberships.md` |
 | `identity-and-tenancy` | `roles` | 15 | `docs/07-data-architecture/tables/identity-and-tenancy/roles.md` |
@@ -187,7 +187,8 @@ This document is the implementation authority for Physical Schema Registry. It d
 | `identity-and-tenancy` | `invitations` | 13 | `docs/07-data-architecture/tables/identity-and-tenancy/invitations.md` |
 | `identity-and-tenancy` | `service_accounts` | 13 | `docs/07-data-architecture/tables/identity-and-tenancy/service-accounts.md` |
 | `identity-and-tenancy` | `api_keys` | 15 | `docs/07-data-architecture/tables/identity-and-tenancy/api-keys.md` |
-| `identity-and-tenancy` | `sessions` | 13 | `docs/07-data-architecture/tables/identity-and-tenancy/sessions.md` |
+| `identity-and-tenancy` | `sessions` | 8 | `docs/07-data-architecture/tables/identity-and-tenancy/sessions.md` |
+| `identity-and-tenancy` | `authentication_verifications` | 6 | `docs/07-data-architecture/tables/identity-and-tenancy/authentication-verifications.md` |
 | `identity-and-tenancy` | `authentication_events` | 16 | `docs/07-data-architecture/tables/identity-and-tenancy/authentication-events.md` |
 | `stores-and-integrations` | `stores` | 15 | `docs/07-data-architecture/tables/stores-and-integrations/stores.md` |
 | `stores-and-integrations` | `store_domains` | 15 | `docs/07-data-architecture/tables/stores-and-integrations/store-domains.md` |
