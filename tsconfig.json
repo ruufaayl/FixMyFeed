@@ -8,6 +8,7 @@
     { "path": "packages/contracts" },
     { "path": "packages/testing" },
     { "path": "packages/database" },
+    { "path": "packages/storage" },
     { "path": "packages/auth" },
     { "path": "packages/connectors" },
     { "path": "packages/diagnostics" },

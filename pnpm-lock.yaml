@@ -110,6 +110,12 @@ importers:
 
   packages/seo: {}
 
+  packages/storage:
+    dependencies:
+      '@fixmyfeed/config':
+        specifier: workspace:*
+        version: link:../config
+
   packages/testing: {}
 
   packages/ui: {}
