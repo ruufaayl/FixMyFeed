@@ -1,0 +1,66 @@
+name: fixmyfeed-local
+
+services:
+  postgres:
+    image: postgres:17.10-alpine3.23
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fixmyfeed
+      POSTGRES_USER: fixmyfeed
+      POSTGRES_PASSWORD: "${FIXMYFEED_POSTGRES_PASSWORD:?Set FIXMYFEED_POSTGRES_PASSWORD}"
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fixmyfeed -d fixmyfeed"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - dependencies
+
+  object-storage:
+    image: chrislusf/seaweedfs:4.29
+    restart: unless-stopped
+    command: ["mini", "-dir=/data"]
+    environment:
+      AWS_ACCESS_KEY_ID: "${OBJECT_STORAGE_ACCESS_KEY:?Set OBJECT_STORAGE_ACCESS_KEY}"
+      AWS_SECRET_ACCESS_KEY: "${OBJECT_STORAGE_SECRET_KEY:?Set OBJECT_STORAGE_SECRET_KEY}"
+      S3_BUCKET: fixmyfeed-local
+    ports:
+      - "127.0.0.1:8333:8333"
+    volumes:
+      - object-storage-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9333/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    networks:
+      - dependencies
+
+  mailpit:
+    image: axllent/mailpit:v1.30.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    healthcheck:
+      test: ["CMD", "/usr/bin/nc", "-z", "127.0.0.1", "1025"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - dependencies
+
+volumes:
+  postgres-data:
+  object-storage-data:
+
+networks:
+  dependencies:
+    internal: true

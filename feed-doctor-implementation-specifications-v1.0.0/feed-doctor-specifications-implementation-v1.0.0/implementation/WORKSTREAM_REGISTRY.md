@@ -180,7 +180,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T002 | Create unit integration contract and end-to-end test harnesses | E00 | Not Started |
 | T003 | Create configuration schema and startup validation | E00 | Verified |
 | T004 | Create CI pipeline and generated traceability checks | E00 | Verified |
-| T005 | Create Docker-local dependency environment | E00 | Not Started |
+| T005 | Create Docker-local dependency environment | E00 | In Review |
 | T010 | Implement database schema and migration framework | E01 | Not Started |
 | T011 | Implement Better Auth integration | E01 | Not Started |
 | T012 | Implement organizations workspaces and memberships | E01 | Not Started |
