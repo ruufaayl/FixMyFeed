@@ -184,7 +184,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T010 | Implement database schema and migration framework | E01 | In Review |
 | T011 | Implement Better Auth integration | E01 | In Review |
 | T012 | Implement organizations workspaces and memberships | E01 | Not Started |
-| T013 | Implement RBAC and permission evaluation | E01 | In Review |
+| T013 | Implement RBAC and permission evaluation | E01 | Verified |
 | T014 | Implement sessions MFA and security events | E01 | Not Started |
 | T015 | Implement encrypted credential vault | E01 | Not Started |
 | T016 | Implement immutable audit logging | E01 | Not Started |
