@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * WorkspaceSwitcher (task T101).
  *

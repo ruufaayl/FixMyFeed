@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Workspace context (task T101).
  *
