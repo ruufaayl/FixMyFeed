@@ -106,3 +106,14 @@ export type { Column, DataTableProps, SortDirection } from "./patterns/data-tabl
 // Inspector drawer + source comparison (T104).
 export { Inspector, SourceComparison } from "./patterns/inspector.js";
 export type { InspectorProps, ComparisonRow, SourceComparisonProps } from "./patterns/inspector.js";
+
+// Issue-center patterns (T105).
+export { FilterBar, EvidencePanel } from "./patterns/issues.js";
+export type {
+  FilterOption,
+  FilterControl,
+  SavedView,
+  FilterBarProps,
+  EvidenceEntry,
+  EvidencePanelProps,
+} from "./patterns/issues.js";

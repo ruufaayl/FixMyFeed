@@ -247,7 +247,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T102 | Implement onboarding workflows | E10 | In Review |
 | T103 | Implement dashboards and portfolio views | E10 | In Review |
 | T104 | Implement catalog and product views | E10 | In Review |
-| T105 | Implement issue center and diagnostic views | E10 | Not Started |
+| T105 | Implement issue center and diagnostic views | E10 | In Review |
 | T106 | Implement repair approval and history views | E10 | Not Started |
 | T107 | Implement rules monitoring reports and exports | E10 | Not Started |
 | T110 | Implement monitor alert and escalation engine | E11 | Not Started |
