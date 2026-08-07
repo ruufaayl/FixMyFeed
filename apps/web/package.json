@@ -6,7 +6,7 @@
   "description": "Next.js application: public SEO pages, authenticated app routes, and bounded request/response APIs. Never executes unbounded catalog work in a request.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm --filter @fixmyfeed/ui build && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
   },
