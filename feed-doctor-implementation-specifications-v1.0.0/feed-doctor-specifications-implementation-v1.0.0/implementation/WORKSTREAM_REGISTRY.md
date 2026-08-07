@@ -213,12 +213,12 @@ This document is the implementation authority for Workstream Registry. It define
 | T052 | Implement WooCommerce webhook ingestion | E05 | In Review |
 | T053 | Implement WooCommerce reconciliation and hosting fault handling | E05 | In Review |
 | T054 | Implement WooCommerce controlled writeback | E05 | In Review |
-| T060 | Implement Google OAuth and account discovery | E06 | Not Started |
-| T061 | Implement Merchant API account and product issue ingestion | E06 | Not Started |
-| T062 | Implement aggregate status and product data ingestion | E06 | Not Started |
-| T063 | Implement data source and destination ingestion | E06 | Not Started |
-| T064 | Implement Merchant API quota scheduling and retries | E06 | Not Started |
-| T065 | Implement issue resolution capability routing | E06 | Not Started |
+| T060 | Implement Google OAuth and account discovery | E06 | In Review |
+| T061 | Implement Merchant API account and product issue ingestion | E06 | In Review |
+| T062 | Implement aggregate status and product data ingestion | E06 | In Review |
+| T063 | Implement data source and destination ingestion | E06 | In Review |
+| T064 | Implement Merchant API quota scheduling and retries | E06 | In Review |
+| T065 | Implement issue resolution capability routing | E06 | In Review |
 | T070 | Implement file upload and remote feed acquisition | E07 | Not Started |
 | T071 | Implement streaming CSV TSV XML and JSON parsers | E07 | Not Started |
 | T072 | Implement schema mapping and import preview | E07 | Not Started |

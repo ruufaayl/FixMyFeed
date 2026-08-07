@@ -110,3 +110,6 @@ export * as shopify from "./shopify/index.js";
 
 // T050–T054 WooCommerce connector.
 export * as woocommerce from "./woocommerce/index.js";
+
+// T060–T065 Google Merchant Center destination connector.
+export * as google from "./google/index.js";
