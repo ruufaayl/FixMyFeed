@@ -63,3 +63,11 @@ export type {
   ShopifyWebhookEnvelope,
   RestShopifyProduct,
 } from "./webhooks.js";
+
+export {
+  shopifyProductFingerprint,
+  reconcileShopifyCatalog,
+  buildIncrementalProductsQuery,
+  maxUpdatedAt,
+} from "./reconciliation.js";
+export type { IncrementalQueryOptions } from "./reconciliation.js";

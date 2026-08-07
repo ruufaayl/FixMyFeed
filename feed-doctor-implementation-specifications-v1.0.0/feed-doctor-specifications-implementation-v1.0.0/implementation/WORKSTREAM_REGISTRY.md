@@ -205,7 +205,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T040 | Implement Shopify installation and OAuth | E04 | In Review |
 | T041 | Implement Shopify bulk catalog import | E04 | In Review |
 | T042 | Implement Shopify webhook ingestion | E04 | In Review |
-| T043 | Implement Shopify incremental reconciliation | E04 | Not Started |
+| T043 | Implement Shopify incremental reconciliation | E04 | In Review |
 | T044 | Implement Shopify controlled writeback | E04 | Not Started |
 | T045 | Implement Shopify privacy and uninstall callbacks | E04 | Not Started |
 | T050 | Implement WooCommerce credential connection | E05 | Not Started |
