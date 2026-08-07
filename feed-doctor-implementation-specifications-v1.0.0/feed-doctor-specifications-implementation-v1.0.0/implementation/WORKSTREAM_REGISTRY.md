@@ -220,7 +220,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T064 | Implement Merchant API quota scheduling and retries | E06 | In Review |
 | T065 | Implement issue resolution capability routing | E06 | In Review |
 | T070 | Implement file upload and remote feed acquisition | E07 | In Review |
-| T071 | Implement streaming CSV TSV XML and JSON parsers | E07 | Not Started |
+| T071 | Implement streaming CSV TSV XML and JSON parsers | E07 | In Review |
 | T072 | Implement schema mapping and import preview | E07 | Not Started |
 | T073 | Implement normalized catalog and immutable snapshots | E07 | Not Started |
 | T074 | Implement product identity and variant matching | E07 | Not Started |

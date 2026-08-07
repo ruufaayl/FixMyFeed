@@ -21,3 +21,7 @@ export {
   validateFeedSource,
 } from "./acquisition.js";
 export type { FeedFormat, FeedSourceKind, FeedSourceInput, FeedSource } from "./acquisition.js";
+
+// T071 streaming CSV/TSV/XML/JSON parsers.
+export { parseDelimited, parseCsv, parseTsv, parseJson, parseXml, parseFeed } from "./parsers.js";
+export type { FeedRecord } from "./parsers.js";
