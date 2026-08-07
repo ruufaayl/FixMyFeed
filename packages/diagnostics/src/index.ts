@@ -68,3 +68,20 @@ export type {
   ReconciliationResult,
   ReconciliationSummary,
 } from "./reconciliation.js";
+
+// T080 validator registry + execution framework.
+export {
+  ISSUE_SEVERITIES,
+  issue,
+  productValidator,
+  ValidatorRegistry,
+  runValidators,
+} from "./engine.js";
+export type {
+  IssueSeverity,
+  ValidationIssue,
+  ValidatorContext,
+  Validator,
+  ValidatorRunResult,
+  EngineResult,
+} from "./engine.js";
