@@ -25,3 +25,13 @@ export type { FeedFormat, FeedSourceKind, FeedSourceInput, FeedSource } from "./
 // T071 streaming CSV/TSV/XML/JSON parsers.
 export { parseDelimited, parseCsv, parseTsv, parseJson, parseXml, parseFeed } from "./parsers.js";
 export type { FeedRecord } from "./parsers.js";
+
+// T072 schema mapping + import preview.
+export {
+  FEED_ATTRIBUTES,
+  REQUIRED_FEED_ATTRIBUTES,
+  inferMapping,
+  applyMapping,
+  buildImportPreview,
+} from "./schema-mapping.js";
+export type { FeedAttribute, SchemaMapping, ImportPreview } from "./schema-mapping.js";
