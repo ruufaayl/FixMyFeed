@@ -16,6 +16,7 @@ import { catalogDiscrepancies } from "./reconciliation-schema.js";
 import { diagnosticIssues } from "./diagnostic-issue-schema.js";
 import { repairPlans, repairApprovals } from "./repair-schema.js";
 import { repairExecutions, repairExecutionItems } from "./repair-execution-schema.js";
+import { repairRules } from "./repair-rule-schema.js";
 
 export { authenticationVerifications, sessions, userIdentities, users } from "./auth-schema.js";
 export { memberships, organizations, workspaces } from "./tenancy-schema.js";
@@ -34,6 +35,7 @@ export { catalogDiscrepancies } from "./reconciliation-schema.js";
 export { diagnosticIssues } from "./diagnostic-issue-schema.js";
 export { repairPlans, repairApprovals } from "./repair-schema.js";
 export { repairExecutions, repairExecutionItems } from "./repair-execution-schema.js";
+export { repairRules } from "./repair-rule-schema.js";
 
 export const schema = {
   users,
@@ -64,4 +66,5 @@ export const schema = {
   repairApprovals,
   repairExecutions,
   repairExecutionItems,
+  repairRules,
 } as const;

@@ -85,3 +85,26 @@ export {
   toRollbackExecutionRow,
 } from "./rollback.js";
 export type { RollbackSource } from "./rollback.js";
+
+// T097 rule builder expression + simulation.
+export {
+  RULE_FIELDS,
+  RULE_OPERATORS,
+  RULE_ACTIONS,
+  REPAIR_RULES_ERROR,
+  validateRuleDefinition,
+  matchesRule,
+  selectRule,
+  simulateRules,
+  toRepairRuleRow,
+} from "./rules.js";
+export type {
+  RuleField,
+  RuleOperator,
+  RuleAction,
+  RuleCondition,
+  RuleDefinition,
+  RepairRule,
+  RuleSimulationEntry,
+  RuleSimulation,
+} from "./rules.js";
