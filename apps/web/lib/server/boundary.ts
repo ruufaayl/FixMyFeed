@@ -7,9 +7,9 @@
  * Nothing in this surface exposes Drizzle models, database rows, connector
  * payloads, queue internals, or raw JSONB.
  */
-export * from "./context.js";
-export * from "./errors.js";
-export * from "./query.js";
-export * from "./tenant-scope.js";
-export * from "./dto.js";
-export * from "./services.js";
+export * from "./context";
+export * from "./errors";
+export * from "./query";
+export * from "./tenant-scope";
+export * from "./dto";
+export * from "./services";

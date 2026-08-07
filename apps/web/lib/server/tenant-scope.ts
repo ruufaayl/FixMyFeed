@@ -6,8 +6,8 @@
  * honored only when the user is a member of it (else FORBIDDEN); the organization
  * id is taken from the matched membership, so a client cannot widen its scope.
  */
-import type { AppContextDTO } from "./context.js";
-import { AppError, APP_ERROR_CODE } from "./errors.js";
+import type { AppContextDTO } from "./context";
+import { AppError, APP_ERROR_CODE } from "./errors";
 
 export interface TenantScope {
   readonly organizationId: string;

@@ -8,10 +8,37 @@
  * against real Postgres/test services in T159. Never import this from client
  * components.
  */
+import { headers } from "next/headers";
 import { loadConfig } from "@fixmyfeed/config";
-import { createDatabaseClientFromConfig, type DatabaseClient } from "@fixmyfeed/database";
+import {
+  createDatabaseClientFromConfig,
+  memberships,
+  workspaces,
+  type DatabaseClient,
+} from "@fixmyfeed/database";
 import { createAuth, type AuthIntegration } from "@fixmyfeed/auth";
-import type { AppSession, SessionReader } from "./context";
+import { and, eq } from "drizzle-orm";
+import {
+  getAppContext,
+  type AppContextDTO,
+  type AppSession,
+  type MembershipLoader,
+  type MembershipRecord,
+  type SessionReader,
+} from "./context";
+import {
+  createOverviewService,
+  createCatalogService,
+  type OverviewService,
+  type CatalogService,
+} from "./services";
+import { createOverviewRepository } from "./adapters/overview-adapter";
+import { createCatalogRepository } from "./adapters/catalog-adapter";
+
+/** Minimal header accessor (accepts Next's ReadonlyHeaders and Headers). */
+interface HeaderReader {
+  get(name: string): string | null;
+}
 
 type LoadedConfig = ReturnType<typeof loadConfig>["config"];
 
@@ -41,7 +68,7 @@ interface SessionResponse {
  * A `SessionReader` backed by Better Auth. Reads the current session by calling
  * the auth handler's `get-session` endpoint with the request's cookies.
  */
-export function createBetterAuthSessionReader(requestHeaders: Headers): SessionReader {
+export function createBetterAuthSessionReader(requestHeaders: HeaderReader): SessionReader {
   return {
     async getSession(): Promise<AppSession | null> {
       const integration = auth();
@@ -56,4 +83,62 @@ export function createBetterAuthSessionReader(requestHeaders: Headers): SessionR
       return { userId: user.id, name: user.name ?? "", email: user.email ?? "" };
     },
   };
+}
+
+/** A `MembershipLoader` backed by Drizzle: the workspaces a user can act in. */
+export function createDrizzleMembershipLoader(client: DatabaseClient): MembershipLoader {
+  const dbi = client.db;
+  return {
+    async load(userId: string): Promise<readonly MembershipRecord[]> {
+      const rows = await dbi
+        .select({
+          workspaceId: workspaces.id,
+          organizationId: workspaces.organizationId,
+          workspaceName: workspaces.name,
+          role: memberships.role,
+        })
+        .from(memberships)
+        .innerJoin(
+          workspaces,
+          and(
+            eq(workspaces.organizationId, memberships.organizationId),
+            eq(workspaces.id, memberships.workspaceId),
+          ),
+        )
+        .where(and(eq(memberships.userId, userId), eq(memberships.status, "active")));
+      return rows.map((r) => ({
+        workspaceId: r.workspaceId,
+        organizationId: r.organizationId,
+        workspaceName: r.workspaceName,
+        role: r.role,
+      }));
+    },
+  };
+}
+
+/**
+ * Resolves the application context for the current server request from cookies.
+ * Server components / actions call this — never the client.
+ */
+export async function getServerContext(
+  requestedWorkspaceId?: string | null,
+): Promise<AppContextDTO | null> {
+  const requestHeaders = await headers();
+  const sessionReader = createBetterAuthSessionReader(requestHeaders);
+  const membershipLoader = createDrizzleMembershipLoader(db());
+  return getAppContext(sessionReader, membershipLoader, requestedWorkspaceId);
+}
+
+interface AppServices {
+  readonly overview: OverviewService;
+  readonly catalog: CatalogService;
+}
+let servicesCache: AppServices | undefined;
+
+/** The wired application services (repository adapters over the DB client). */
+export function services(): AppServices {
+  return (servicesCache ??= {
+    overview: createOverviewService(createOverviewRepository(db())),
+    catalog: createCatalogService(createCatalogRepository(db())),
+  });
 }
