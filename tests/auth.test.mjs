@@ -79,6 +79,7 @@ test("schema: Better Auth tables remain present in the aggregated documented sch
     "supportAccessGrants",
     "userIdentities",
     "users",
+    "webhookReceipts",
     "workspaces",
   ]);
 
