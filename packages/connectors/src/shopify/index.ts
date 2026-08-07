@@ -93,3 +93,23 @@ export type {
   WritebackPlan,
   ShopifyUserError,
 } from "./writeback.js";
+
+export {
+  SHOPIFY_COMPLIANCE_TOPICS,
+  SHOPIFY_UNINSTALL_TOPIC,
+  SHOPIFY_COMPLIANCE_KINDS,
+  SHOPIFY_COMPLIANCE_ACTIONS,
+  isShopifyComplianceTopic,
+  parseShopifyCompliancePayload,
+  planComplianceActions,
+} from "./compliance.js";
+export type {
+  ShopifyComplianceKind,
+  ShopifyComplianceAction,
+  ShopifyComplianceCommand,
+  CustomerDataRequestCommand,
+  CustomerRedactCommand,
+  ShopRedactCommand,
+  AppUninstalledCommand,
+  ShopifyCompliancePlan,
+} from "./compliance.js";
