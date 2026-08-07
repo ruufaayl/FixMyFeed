@@ -98,3 +98,11 @@ export type {
   IntegrationStatusProps,
   ActivityItemProps,
 } from "./patterns/product.js";
+
+// Data table (T104).
+export { DataTable, sortRows } from "./patterns/data-table.js";
+export type { Column, DataTableProps, SortDirection } from "./patterns/data-table.js";
+
+// Inspector drawer + source comparison (T104).
+export { Inspector, SourceComparison } from "./patterns/inspector.js";
+export type { InspectorProps, ComparisonRow, SourceComparisonProps } from "./patterns/inspector.js";
