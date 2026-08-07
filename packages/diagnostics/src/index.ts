@@ -112,3 +112,14 @@ export {
   toDiagnosticIssueRow,
 } from "./issue-lifecycle.js";
 export type { NormalizedIssue, PriorIssue, IssueLifecycleResult } from "./issue-lifecycle.js";
+
+// T086 evidence, confidence, impact, prioritization.
+export {
+  SEVERITY_WEIGHT,
+  issueConfidence,
+  issueImpact,
+  scoreIssue,
+  prioritizeIssues,
+  summarizeScan,
+} from "./scoring.js";
+export type { ScoredIssue, ScanSummary } from "./scoring.js";
