@@ -72,7 +72,12 @@ test("each workspace has package.json, tsconfig.json, and src/index.ts with the 
     const dir = join(ROOT, locationOf(id));
     assert.ok(existsSync(join(dir, "package.json")), `${id} missing package.json`);
     assert.ok(existsSync(join(dir, "tsconfig.json")), `${id} missing tsconfig.json`);
-    assert.ok(existsSync(join(dir, "src", "index.ts")), `${id} missing src/index.ts`);
+    // Library workspaces expose a src/index.ts entry. A Next.js application (an
+    // `app/` directory + next.config) is a framework app with no library entry.
+    const isNextApp = existsSync(join(dir, "app")) && existsSync(join(dir, "next.config.ts"));
+    if (!isNextApp) {
+      assert.ok(existsSync(join(dir, "src", "index.ts")), `${id} missing src/index.ts`);
+    }
     const pkg = readJson(join(dir, "package.json"));
     assert.equal(pkg.name, `${SCOPE}/${id}`, `${id} has wrong package name ${pkg.name}`);
     assert.equal(pkg.private, true, `${id} must be private`);

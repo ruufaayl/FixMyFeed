@@ -243,7 +243,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T096 | Implement rollback planning and execution | E09 | Not Started |
 | T097 | Implement rule builder expression and simulation | E09 | Not Started |
 | T100 | Implement design system components | E10 | In Review |
-| T101 | Implement authenticated shell navigation and context | E10 | Not Started |
+| T101 | Implement authenticated shell navigation and context | E10 | In Review |
 | T102 | Implement onboarding workflows | E10 | Not Started |
 | T103 | Implement dashboards and portfolio views | E10 | Not Started |
 | T104 | Implement catalog and product views | E10 | Not Started |

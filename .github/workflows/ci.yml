@@ -75,6 +75,9 @@ jobs:
       - name: UI component tests (Vitest + jsdom)
         run: pnpm --filter @fixmyfeed/ui test
 
+      - name: Web app typecheck (Next.js, outside the root composite)
+        run: pnpm --filter @fixmyfeed/web typecheck
+
       - name: Generated traceability check
         run: pnpm run check:traceability
 

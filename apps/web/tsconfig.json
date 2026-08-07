@@ -1,49 +1,35 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../../packages/domain"
-    },
-    {
-      "path": "../../packages/contracts"
-    },
-    {
-      "path": "../../packages/config"
-    },
-    {
-      "path": "../../packages/observability"
-    },
-    {
-      "path": "../../packages/database"
-    },
-    {
-      "path": "../../packages/auth"
-    },
-    {
-      "path": "../../packages/connectors"
-    },
-    {
-      "path": "../../packages/diagnostics"
-    },
-    {
-      "path": "../../packages/seo"
-    },
-    {
-      "path": "../../packages/analytics"
-    },
-    {
-      "path": "../../packages/ui"
-    },
-    {
-      "path": "../../packages/repairs"
-    },
-    {
-      "path": "../../packages/jobs"
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "incremental": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": false,
+    "types": ["node", "react", "react-dom"],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
     }
-  ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", ".next"]
 }

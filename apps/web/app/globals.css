@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@import "@fixmyfeed/ui/styles.css";
+
+/* Let Tailwind scan the design system's compiled class names. */
+@source "../../../packages/ui/dist";
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fmf-font-sans);
+  background: var(--fmf-canvas);
+  color: var(--fmf-text);
+  -webkit-font-smoothing: antialiased;
+}

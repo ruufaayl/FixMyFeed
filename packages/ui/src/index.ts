@@ -55,3 +55,22 @@ export { IssueBadge } from "./components/IssueBadge.js";
 export type { IssueBadgeProps } from "./components/IssueBadge.js";
 export { EmptyState, EMPTY_STATE_KINDS } from "./components/EmptyState.js";
 export type { EmptyStateProps, EmptyStateKind } from "./components/EmptyState.js";
+
+// Patterns — application shell + workspace context (T101).
+export { WorkspaceProvider, useWorkspace } from "./patterns/workspace-context.js";
+export type {
+  Workspace,
+  WorkspaceContextValue,
+  WorkspaceProviderProps,
+} from "./patterns/workspace-context.js";
+export { Sidebar, TopBar, AppShell } from "./patterns/shell.js";
+export type {
+  NavItem,
+  NavSection,
+  RenderLink,
+  SidebarProps,
+  TopBarProps,
+  AppShellProps,
+} from "./patterns/shell.js";
+export { WorkspaceSwitcher } from "./patterns/WorkspaceSwitcher.js";
+export type { WorkspaceSwitcherProps } from "./patterns/WorkspaceSwitcher.js";
