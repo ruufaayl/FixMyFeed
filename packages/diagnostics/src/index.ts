@@ -103,3 +103,12 @@ export type { UrlProbe, UrlProbeResult } from "./validators/media.js";
 // T084 landing-page + consistency validators.
 export { consistencyValidators, checkLandingPages } from "./validators/consistency.js";
 export type { LandingPageFacts, LandingPageProbe } from "./validators/consistency.js";
+
+// T085 issue normalization, dedup, and lifecycle.
+export {
+  issueFingerprint,
+  normalizeIssues,
+  reconcileIssueLifecycle,
+  toDiagnosticIssueRow,
+} from "./issue-lifecycle.js";
+export type { NormalizedIssue, PriorIssue, IssueLifecycleResult } from "./issue-lifecycle.js";
