@@ -70,6 +70,7 @@ test("schema: Better Auth tables remain present in the aggregated documented sch
     "idempotencyKeys",
     "inboxEvents",
     "memberships",
+    "oauthConnections",
     "operations",
     "organizations",
     "outboxEvents",

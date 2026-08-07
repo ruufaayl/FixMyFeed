@@ -54,3 +54,24 @@ export type {
 
 export { ok, fail, isOk, unwrap } from "./result.js";
 export type { ConnectorResult } from "./result.js";
+
+// T031 OAuth authorization-code flow framework.
+export {
+  TOKEN_EXPIRY_SKEW_MS,
+  generateState,
+  generatePkcePair,
+  createAuthorizationRequest,
+  verifyCallback,
+  parseTokenResponse,
+  isTokenExpired,
+  tokenNeedsRefresh,
+} from "./oauth.js";
+export type {
+  PkcePair,
+  AuthorizationRequestInput,
+  AuthorizationRequest,
+  AuthorizationGenerators,
+  OAuthCallbackParams,
+  TokenSet,
+  RawTokenResponse,
+} from "./oauth.js";
