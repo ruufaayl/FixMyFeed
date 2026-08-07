@@ -403,3 +403,6 @@ export type {
   RepairExecutionItemRow,
   NewRepairExecutionItemRow,
 } from "./repair-execution-schema.js";
+// T097 repair rules.
+export { repairRules } from "./repair-rule-schema.js";
+export type { RepairRuleRow, NewRepairRuleRow } from "./repair-rule-schema.js";

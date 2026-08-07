@@ -241,7 +241,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T094 | Implement connector writeback executor | E09 | In Review |
 | T095 | Implement verification and partial success handling | E09 | In Review |
 | T096 | Implement rollback planning and execution | E09 | In Review |
-| T097 | Implement rule builder expression and simulation | E09 | Not Started |
+| T097 | Implement rule builder expression and simulation | E09 | In Review |
 | T100 | Implement design system components | E10 | In Review |
 | T101 | Implement authenticated shell navigation and context | E10 | In Review |
 | T102 | Implement onboarding workflows | E10 | In Review |
