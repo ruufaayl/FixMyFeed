@@ -277,3 +277,19 @@ export type {
   IdempotencyDecision,
   IdempotencyErrorCode,
 } from "./idempotency.js";
+// T031 OAuth connection lifecycle.
+export { OAUTH_CONNECTION_STATUSES, oauthConnections } from "./oauth-connection-schema.js";
+export type {
+  OAuthConnection,
+  NewOAuthConnection,
+  OAuthConnectionStatus,
+} from "./oauth-connection-schema.js";
+export {
+  OAUTH_CONNECTION_ERROR_CODE,
+  OAuthConnectionError,
+  isTerminalConnectionStatus,
+  canTransitionConnection,
+  assertConnectionTransition,
+  deriveConnectionStatus,
+} from "./oauth-connection.js";
+export type { OAuthConnectionErrorCode } from "./oauth-connection.js";
