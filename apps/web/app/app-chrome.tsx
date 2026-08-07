@@ -8,7 +8,7 @@
  * workspace context. Workspace data is a placeholder here; later tasks feed it
  * from the authenticated session.
  */
-import type { ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -17,6 +17,10 @@ import {
   TopBar,
   WorkspaceProvider,
   WorkspaceSwitcher,
+  Button,
+  CommandMenu,
+  useCommandShortcut,
+  type Command,
   type NavSection,
   type Workspace,
 } from "@fixmyfeed/ui";
@@ -55,6 +59,37 @@ export function AppChrome({ children }: { children: ReactNode }) {
   const router = useRouter();
   const activeId = activeIdFor(pathname);
 
+  const [commandOpen, setCommandOpen] = useState(false);
+  const toggleCommand = useCallback(() => setCommandOpen((open) => !open), []);
+  useCommandShortcut(toggleCommand);
+
+  const commands = useMemo<Command[]>(() => {
+    const navigate: Command[] = SECTIONS.flatMap((section) =>
+      section.items.map((item) => ({
+        id: `nav:${item.id}`,
+        label: `Go to ${item.label}`,
+        group: "Navigate",
+        onRun: () => router.push(item.href),
+      })),
+    );
+    const actions: Command[] = [
+      {
+        id: "action:scan",
+        label: "Run new scan",
+        group: "Actions",
+        keywords: ["diagnose", "validate"],
+        onRun: () => router.push("/issues"),
+      },
+      {
+        id: "action:connect",
+        label: "Connect a store",
+        group: "Actions",
+        onRun: () => router.push("/onboarding"),
+      },
+    ];
+    return [...actions, ...navigate];
+  }, [router]);
+
   const sidebar = (
     <Sidebar
       sections={SECTIONS}
@@ -77,9 +112,22 @@ export function AppChrome({ children }: { children: ReactNode }) {
       activeWorkspaceId="demo"
       onSwitch={() => router.refresh()}
     >
-      <AppShell sidebar={sidebar} topBar={<TopBar title="FixMyFeed" />}>
+      <AppShell
+        sidebar={sidebar}
+        topBar={
+          <TopBar title="FixMyFeed">
+            <Button variant="secondary" size="sm" onClick={toggleCommand}>
+              Search
+              <kbd className="ml-1 rounded bg-[var(--fmf-fog-100)] px-1 text-[11px] text-[var(--fmf-text-subtle)]">
+                ⌘K
+              </kbd>
+            </Button>
+          </TopBar>
+        }
+      >
         {children}
       </AppShell>
+      <CommandMenu open={commandOpen} onOpenChange={setCommandOpen} commands={commands} />
     </WorkspaceProvider>
   );
 }

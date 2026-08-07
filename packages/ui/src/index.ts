@@ -74,3 +74,17 @@ export type {
 } from "./patterns/shell.js";
 export { WorkspaceSwitcher } from "./patterns/WorkspaceSwitcher.js";
 export type { WorkspaceSwitcherProps } from "./patterns/WorkspaceSwitcher.js";
+
+// Command menu + keyboard system (T102).
+export { CommandMenu, filterCommands, useCommandShortcut } from "./patterns/command-menu.js";
+export type { Command, CommandMenuProps } from "./patterns/command-menu.js";
+
+// Onboarding patterns (T102).
+export { Stepper, ConnectCard, STEP_STATES, CONNECT_STATES } from "./patterns/onboarding.js";
+export type {
+  Step,
+  StepState,
+  StepperProps,
+  ConnectState,
+  ConnectCardProps,
+} from "./patterns/onboarding.js";
