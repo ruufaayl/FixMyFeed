@@ -75,3 +75,14 @@ export type {
   TokenSet,
   RawTokenResponse,
 } from "./oauth.js";
+
+// T032 inbound webhook receipt verification.
+export {
+  WEBHOOK_SIGNATURE_ENCODINGS,
+  WEBHOOK_TIMESTAMP_TOLERANCE_MS,
+  computeWebhookSignature,
+  verifyWebhookSignature,
+  assertWebhookSignature,
+  isWebhookTimestampFresh,
+} from "./webhook.js";
+export type { WebhookSignatureEncoding, WebhookSignatureInput } from "./webhook.js";

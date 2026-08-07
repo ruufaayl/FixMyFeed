@@ -293,3 +293,23 @@ export {
   deriveConnectionStatus,
 } from "./oauth-connection.js";
 export type { OAuthConnectionErrorCode } from "./oauth-connection.js";
+// T032 webhook receipt verification/deduplication.
+export { WEBHOOK_RECEIPT_STATUSES, webhookReceipts } from "./webhook-receipt-schema.js";
+export type {
+  WebhookReceipt,
+  NewWebhookReceipt,
+  WebhookReceiptStatus,
+} from "./webhook-receipt-schema.js";
+export {
+  WEBHOOK_RECEIPT_ERROR_CODE,
+  WebhookReceiptError,
+  createWebhookReceipt,
+  decideWebhookReceipt,
+  markWebhookReceipt,
+} from "./webhook-receipt.js";
+export type {
+  NewWebhookReceiptInput,
+  WebhookReceiptRecord,
+  WebhookDedupDecision,
+  WebhookReceiptErrorCode,
+} from "./webhook-receipt.js";

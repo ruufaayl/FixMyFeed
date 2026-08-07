@@ -338,6 +338,7 @@ test("schema: lifecycle catalogs are closed and schema aggregation is complete",
     "supportAccessGrants",
     "userIdentities",
     "users",
+    "webhookReceipts",
     "workspaces",
   ]);
 });
