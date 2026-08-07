@@ -197,7 +197,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T025 | Implement idempotency and operation resources | E02 | In Review |
 | T026 | Implement observability and correlation | E02 | In Review |
 | T027 | Implement backup restore automation documentation hooks | E02 | In Review |
-| T030 | Implement connector capability and error contracts | E03 | Not Started |
+| T030 | Implement connector capability and error contracts | E03 | In Review |
 | T031 | Implement OAuth state callback and credential lifecycle framework | E03 | Not Started |
 | T032 | Implement webhook receipt verification and deduplication framework | E03 | Not Started |
 | T033 | Implement connector health quota and circuit breaker framework | E03 | Not Started |
