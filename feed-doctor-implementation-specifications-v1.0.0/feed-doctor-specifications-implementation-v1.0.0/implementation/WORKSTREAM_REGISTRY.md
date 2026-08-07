@@ -234,7 +234,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T085 | Implement issue normalization deduplication and lifecycle | E08 | In Review |
 | T086 | Implement evidence confidence impact and prioritization | E08 | In Review |
 | T087 | Implement diagnostic scan orchestration | E08 | In Review |
-| T090 | Implement remediation registry and safety classes | E09 | Not Started |
+| T090 | Implement remediation registry and safety classes | E09 | In Review |
 | T091 | Implement repair option selection and plan generation | E09 | Not Started |
 | T092 | Implement change set preview and conflict detection | E09 | Not Started |
 | T093 | Implement approval and four-eyes policy | E09 | Not Started |

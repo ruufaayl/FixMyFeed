@@ -119,7 +119,20 @@ importers:
 
   packages/observability: {}
 
-  packages/repairs: {}
+  packages/repairs:
+    dependencies:
+      '@fixmyfeed/connectors':
+        specifier: workspace:*
+        version: link:../connectors
+      '@fixmyfeed/database':
+        specifier: workspace:*
+        version: link:../database
+      '@fixmyfeed/diagnostics':
+        specifier: workspace:*
+        version: link:../diagnostics
+      '@fixmyfeed/domain':
+        specifier: workspace:*
+        version: link:../domain
 
   packages/seo: {}
 
