@@ -15,3 +15,9 @@ pnpm-lock.yaml
 # These are intentionally left untouched (a separate task governs their content).
 feed-doctor-implementation-specifications-v1.0.0/
 feed-doctor-specifications-foundation-v0.1.0/
+
+# G-series growth-operations specification overlays — reference material, same
+# genre as the feed-doctor spec set. Ignored so `prettier --check .` is reliable
+# whether or not these are committed.
+fixmyfeed-g-series-repo-overlay-v1.0.0/
+fixmyfeed-growth-operations-specifications-v1.0.0/
