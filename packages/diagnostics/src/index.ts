@@ -46,3 +46,17 @@ export {
   matchVariants,
 } from "./identity-matching.js";
 export type { ProductMatch, ProductMatchResult, VariantMatch } from "./identity-matching.js";
+
+// T075 incremental synchronization checkpoints.
+export {
+  fingerprintIndex,
+  computeCatalogDelta,
+  deltaHasChanges,
+  buildSyncCheckpoint,
+} from "./sync-checkpoints.js";
+export type {
+  FingerprintRow,
+  CatalogDelta,
+  SyncCheckpoint,
+  SyncCheckpointCounts,
+} from "./sync-checkpoints.js";

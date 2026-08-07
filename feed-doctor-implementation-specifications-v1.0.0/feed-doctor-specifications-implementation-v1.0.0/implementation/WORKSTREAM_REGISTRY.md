@@ -224,7 +224,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T072 | Implement schema mapping and import preview | E07 | In Review |
 | T073 | Implement normalized catalog and immutable snapshots | E07 | In Review |
 | T074 | Implement product identity and variant matching | E07 | In Review |
-| T075 | Implement incremental synchronization checkpoints | E07 | Not Started |
+| T075 | Implement incremental synchronization checkpoints | E07 | In Review |
 | T076 | Implement full reconciliation and discrepancy records | E07 | Not Started |
 | T080 | Implement validator registry and execution framework | E08 | Not Started |
 | T081 | Implement structural and required attribute validators | E08 | Not Started |
