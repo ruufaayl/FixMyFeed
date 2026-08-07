@@ -92,3 +92,6 @@ export {
   structuralValidators,
   validatorHelpers,
 } from "./validators/structural.js";
+
+// T082 product identity + variant validators.
+export { identityValidators, isValidGtinChecksum } from "./validators/identity.js";
