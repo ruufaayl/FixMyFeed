@@ -47,3 +47,19 @@ export type {
   RawShopifyVariant,
   RawShopifyImage,
 } from "./bulk-import.js";
+
+export {
+  SHOPIFY_WEBHOOK_HEADERS,
+  SHOPIFY_WEBHOOK_TOPICS,
+  SHOPIFY_EVENT_KINDS,
+  classifyShopifyTopic,
+  verifyShopifyWebhook,
+  parseShopifyWebhookHeaders,
+  mapShopifyRestProduct,
+} from "./webhooks.js";
+export type {
+  ShopifyWebhookTopic,
+  ShopifyEventKind,
+  ShopifyWebhookEnvelope,
+  RestShopifyProduct,
+} from "./webhooks.js";
