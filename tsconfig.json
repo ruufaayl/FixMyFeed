@@ -18,7 +18,6 @@
     { "path": "packages/ui" },
     { "path": "packages/repairs" },
     { "path": "packages/jobs" },
-    { "path": "apps/web" },
     { "path": "apps/worker" },
     { "path": "apps/maintenance" }
   ]
