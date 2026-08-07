@@ -332,3 +332,21 @@ export {
   needsFullSync,
 } from "./connector-sync-cursor.js";
 export type { SyncCursorErrorCode } from "./connector-sync-cursor.js";
+// T073 normalized catalog and immutable snapshots.
+export { CATALOG_STATUSES, catalogs, catalogProducts, catalogSnapshots } from "./catalog-schema.js";
+export type {
+  Catalog,
+  NewCatalog,
+  CatalogStatus,
+  CatalogProductRow,
+  NewCatalogProductRow,
+  CatalogSnapshot,
+  NewCatalogSnapshot,
+} from "./catalog-schema.js";
+export {
+  catalogProductFingerprint,
+  toCatalogProductRow,
+  buildCatalogSnapshot,
+  toCatalogSnapshotRow,
+} from "./catalog.js";
+export type { CatalogSnapshotResult } from "./catalog.js";

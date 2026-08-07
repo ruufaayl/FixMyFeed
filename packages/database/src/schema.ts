@@ -11,6 +11,7 @@ import { idempotencyKeys } from "./idempotency-schema.js";
 import { oauthConnections } from "./oauth-connection-schema.js";
 import { webhookReceipts } from "./webhook-receipt-schema.js";
 import { connectorSyncCursors } from "./connector-sync-cursor-schema.js";
+import { catalogs, catalogProducts, catalogSnapshots } from "./catalog-schema.js";
 
 export { authenticationVerifications, sessions, userIdentities, users } from "./auth-schema.js";
 export { memberships, organizations, workspaces } from "./tenancy-schema.js";
@@ -24,6 +25,7 @@ export { idempotencyKeys } from "./idempotency-schema.js";
 export { oauthConnections } from "./oauth-connection-schema.js";
 export { webhookReceipts } from "./webhook-receipt-schema.js";
 export { connectorSyncCursors } from "./connector-sync-cursor-schema.js";
+export { catalogs, catalogProducts, catalogSnapshots } from "./catalog-schema.js";
 
 export const schema = {
   users,
@@ -45,4 +47,7 @@ export const schema = {
   oauthConnections,
   webhookReceipts,
   connectorSyncCursors,
+  catalogs,
+  catalogProducts,
+  catalogSnapshots,
 } as const;
