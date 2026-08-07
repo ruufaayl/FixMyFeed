@@ -81,6 +81,8 @@ test("schema: Better Auth tables remain present in the aggregated documented sch
     "organizations",
     "outboxEvents",
     "repairApprovals",
+    "repairExecutionItems",
+    "repairExecutions",
     "repairPlans",
     "securityEvents",
     "sessions",

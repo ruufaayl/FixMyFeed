@@ -386,3 +386,20 @@ export type {
   RepairApprovalRow,
   NewRepairApprovalRow,
 } from "./repair-schema.js";
+// T094 repair executions + items.
+export {
+  REPAIR_EXECUTION_KINDS,
+  REPAIR_EXECUTION_STATUSES,
+  REPAIR_ITEM_STATUSES,
+  repairExecutions,
+  repairExecutionItems,
+} from "./repair-execution-schema.js";
+export type {
+  RepairExecutionKind,
+  RepairExecutionStatus,
+  RepairItemStatus,
+  RepairExecutionRow,
+  NewRepairExecutionRow,
+  RepairExecutionItemRow,
+  NewRepairExecutionItemRow,
+} from "./repair-execution-schema.js";

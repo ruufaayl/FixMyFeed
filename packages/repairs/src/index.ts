@@ -56,3 +56,19 @@ export type {
   ApprovalEvaluation,
   ApprovalContext,
 } from "./approval.js";
+
+// T094 connector writeback executor.
+export {
+  buildWritebackInstructions,
+  executeWriteback,
+  resolveExecutionStatus,
+  toRepairExecutionRow,
+  toRepairExecutionItemRow,
+} from "./executor.js";
+export type {
+  WritebackInstruction,
+  WritebackResult,
+  WritebackPort,
+  ExecutionItemOutcome,
+  ExecutionOutcome,
+} from "./executor.js";
