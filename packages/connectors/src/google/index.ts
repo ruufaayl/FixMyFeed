@@ -45,3 +45,12 @@ export type {
   NormalizedAggregateStatus,
   NormalizedGoogleProduct,
 } from "./aggregate-status.js";
+
+export {
+  GOOGLE_DESTINATIONS,
+  DATA_SOURCE_TYPES,
+  normalizeDestination,
+  buildDataSourcesRequest,
+  parseDataSources,
+} from "./data-sources.js";
+export type { GoogleDestination, DataSourceType, NormalizedDataSource } from "./data-sources.js";
