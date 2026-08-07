@@ -195,7 +195,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T023 | Implement object storage abstraction | E02 | In Review |
 | T024 | Implement SMTP notification adapter | E02 | In Review |
 | T025 | Implement idempotency and operation resources | E02 | In Review |
-| T026 | Implement observability and correlation | E02 | Not Started |
+| T026 | Implement observability and correlation | E02 | In Review |
 | T027 | Implement backup restore automation documentation hooks | E02 | Not Started |
 | T030 | Implement connector capability and error contracts | E03 | Not Started |
 | T031 | Implement OAuth state callback and credential lifecycle framework | E03 | Not Started |
