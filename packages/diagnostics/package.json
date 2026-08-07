@@ -16,6 +16,9 @@
     "build": "tsc -b",
     "clean": "tsc -b --clean"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@fixmyfeed/domain": "workspace:*",
+    "@fixmyfeed/database": "workspace:*"
+  },
   "devDependencies": {}
 }

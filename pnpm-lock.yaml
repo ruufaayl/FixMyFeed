@@ -91,7 +91,14 @@ importers:
         specifier: ^0.31.0
         version: 0.31.10
 
-  packages/diagnostics: {}
+  packages/diagnostics:
+    dependencies:
+      '@fixmyfeed/database':
+        specifier: workspace:*
+        version: link:../database
+      '@fixmyfeed/domain':
+        specifier: workspace:*
+        version: link:../domain
 
   packages/domain: {}
 
