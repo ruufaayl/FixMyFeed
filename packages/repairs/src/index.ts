@@ -27,3 +27,12 @@ export type { SafetyClass, RiskLevel, Remediation } from "./registry.js";
 // T091 repair option selection + plan generation.
 export { generateRepairPlan, selectAutoApplicableChanges } from "./plan.js";
 export type { RepairChange, RepairPlan, RepairPlanInput } from "./plan.js";
+
+// T092 change-set preview + conflict detection.
+export { PREVIEW_STATUSES, buildChangeSetPreview, readyChanges } from "./preview.js";
+export type {
+  PreviewStatus,
+  PreviewEntry,
+  ChangeSetPreview,
+  ChangeSetPreviewInput,
+} from "./preview.js";
