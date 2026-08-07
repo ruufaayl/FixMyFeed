@@ -245,7 +245,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T100 | Implement design system components | E10 | In Review |
 | T101 | Implement authenticated shell navigation and context | E10 | In Review |
 | T102 | Implement onboarding workflows | E10 | In Review |
-| T103 | Implement dashboards and portfolio views | E10 | Not Started |
+| T103 | Implement dashboards and portfolio views | E10 | In Review |
 | T104 | Implement catalog and product views | E10 | Not Started |
 | T105 | Implement issue center and diagnostic views | E10 | Not Started |
 | T106 | Implement repair approval and history views | E10 | Not Started |

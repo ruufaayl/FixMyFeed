@@ -88,3 +88,13 @@ export type {
   ConnectState,
   ConnectCardProps,
 } from "./patterns/onboarding.js";
+
+// Product signal patterns (T103).
+export { HealthSignal, IntegrationStatus, ActivityItem } from "./patterns/product.js";
+export type {
+  SignalSource,
+  HealthSignalProps,
+  IntegrationRow,
+  IntegrationStatusProps,
+  ActivityItemProps,
+} from "./patterns/product.js";
