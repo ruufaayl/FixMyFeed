@@ -357,3 +357,15 @@ export type {
   CatalogDiscrepancyRow,
   NewCatalogDiscrepancy,
 } from "./reconciliation-schema.js";
+// T085 diagnostic issue records + lifecycle.
+export {
+  ISSUE_SEVERITY_VALUES,
+  DIAGNOSTIC_ISSUE_STATUSES,
+  diagnosticIssues,
+} from "./diagnostic-issue-schema.js";
+export type {
+  IssueSeverityValue,
+  DiagnosticIssueStatus,
+  DiagnosticIssueRow,
+  NewDiagnosticIssue,
+} from "./diagnostic-issue-schema.js";

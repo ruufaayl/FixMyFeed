@@ -68,3 +68,62 @@ export type {
   ReconciliationResult,
   ReconciliationSummary,
 } from "./reconciliation.js";
+
+// T080 validator registry + execution framework.
+export {
+  ISSUE_SEVERITIES,
+  issue,
+  productValidator,
+  ValidatorRegistry,
+  runValidators,
+} from "./engine.js";
+export type {
+  IssueSeverity,
+  ValidationIssue,
+  ValidatorContext,
+  Validator,
+  ValidatorRunResult,
+  EngineResult,
+} from "./engine.js";
+
+// T081 structural + required-attribute validators.
+export {
+  requiredAttributeValidators,
+  structuralValidators,
+  validatorHelpers,
+} from "./validators/structural.js";
+
+// T082 product identity + variant validators.
+export { identityValidators, isValidGtinChecksum } from "./validators/identity.js";
+
+// T083 image + URL acquisition validators.
+export { mediaValidators, isHttpUrl, checkUrlAcquisition } from "./validators/media.js";
+export type { UrlProbe, UrlProbeResult } from "./validators/media.js";
+
+// T084 landing-page + consistency validators.
+export { consistencyValidators, checkLandingPages } from "./validators/consistency.js";
+export type { LandingPageFacts, LandingPageProbe } from "./validators/consistency.js";
+
+// T085 issue normalization, dedup, and lifecycle.
+export {
+  issueFingerprint,
+  normalizeIssues,
+  reconcileIssueLifecycle,
+  toDiagnosticIssueRow,
+} from "./issue-lifecycle.js";
+export type { NormalizedIssue, PriorIssue, IssueLifecycleResult } from "./issue-lifecycle.js";
+
+// T086 evidence, confidence, impact, prioritization.
+export {
+  SEVERITY_WEIGHT,
+  issueConfidence,
+  issueImpact,
+  scoreIssue,
+  prioritizeIssues,
+  summarizeScan,
+} from "./scoring.js";
+export type { ScoredIssue, ScanSummary } from "./scoring.js";
+
+// T087 diagnostic scan orchestration.
+export { defaultValidators, defaultValidatorRegistry, runDiagnosticScan } from "./orchestration.js";
+export type { DiagnosticScanInput, DiagnosticScanResult } from "./orchestration.js";
