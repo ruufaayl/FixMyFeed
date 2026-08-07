@@ -7,7 +7,7 @@
  * `TaggedValue`. Long-running work is referenced by durable execution ids, never
  * by holding a request open.
  */
-import type { Provenance, TaggedValue } from "./query.js";
+import type { Provenance, TaggedValue } from "./query";
 
 export type IssueSeverityDTO = "critical" | "error" | "warning" | "info";
 export type ToneDTO = "healthy" | "info" | "warning" | "critical" | "neutral" | "brand";

@@ -6,7 +6,7 @@
  * derived, or estimated. Validators reject malformed client input with a
  * `VALIDATION` AppError before it reaches a repository.
  */
-import { appError } from "./errors.js";
+import { appError } from "./errors";
 
 // ── Provenance ───────────────────────────────────────────────────────────────
 

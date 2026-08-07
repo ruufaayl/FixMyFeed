@@ -56,9 +56,18 @@ importers:
       '@fixmyfeed/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@fixmyfeed/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@fixmyfeed/repairs':
+        specifier: workspace:*
+        version: link:../../packages/repairs
       '@fixmyfeed/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(kysely@0.29.4)(pg@8.22.0)(postgres@3.4.9)
       next:
         specifier: 16.3.0
         version: 16.3.0(@types/node@24.9.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)

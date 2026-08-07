@@ -9,9 +9,9 @@
  * implement them in later tasks; tests inject fakes. No infrastructure type
  * crosses this boundary.
  */
-import type { AppContextDTO } from "./context.js";
-import { appError, normalizeError } from "./errors.js";
-import { resolveScope, type TenantScope } from "./tenant-scope.js";
+import type { AppContextDTO } from "./context";
+import { appError, normalizeError } from "./errors";
+import { resolveScope, type TenantScope } from "./tenant-scope";
 import {
   authoritative,
   derived,
@@ -23,7 +23,7 @@ import {
   type DateRange,
   type Page,
   type PageRequestInput,
-} from "./query.js";
+} from "./query";
 import type {
   ActivityDTO,
   CatalogProductDTO,
@@ -39,7 +39,7 @@ import type {
   RepairExceptionDTO,
   RepairPlanDTO,
   ReportSummaryDTO,
-} from "./dto.js";
+} from "./dto";
 
 /** Runs `fn`, normalizing any thrown value into an AppError. */
 async function guard<T>(fn: () => Promise<T>): Promise<T> {
