@@ -107,3 +107,6 @@ export type {
 
 // T040 Shopify connector (installation and OAuth).
 export * as shopify from "./shopify/index.js";
+
+// T050–T054 WooCommerce connector.
+export * as woocommerce from "./woocommerce/index.js";
