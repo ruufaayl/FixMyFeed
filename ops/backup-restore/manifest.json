@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "objectives": {
+    "rpoMinutes": 60,
+    "rtoMinutes": 240
+  },
+  "targets": [
+    {
+      "id": "primary-postgres",
+      "kind": "database",
+      "engine": "postgresql",
+      "schedule": "hourly",
+      "retentionDays": 30,
+      "encrypted": true,
+      "pointInTimeRecovery": true,
+      "description": "Application PostgreSQL database (all tenant data and the migration chain)."
+    },
+    {
+      "id": "object-storage",
+      "kind": "object-storage",
+      "engine": "s3-compatible",
+      "schedule": "daily",
+      "retentionDays": 90,
+      "encrypted": true,
+      "pointInTimeRecovery": false,
+      "description": "S3-compatible object storage (feed snapshots, exports, and artifacts)."
+    }
+  ],
+  "restore": {
+    "steps": [
+      "provision-clean-environment",
+      "restore-primary-postgres",
+      "restore-object-storage",
+      "apply-pending-migrations",
+      "verify",
+      "cutover"
+    ],
+    "verification": ["schema-smoke", "row-count-reconciliation", "audit-chain-integrity"]
+  },
+  "runbook": "feed-doctor-implementation-specifications-v1.0.0/feed-doctor-specifications-implementation-v1.0.0/docs/20-devops-sre-and-platform-engineering/runbooks/backup-restore.md",
+  "drillCadenceDays": 90
+}
