@@ -9,6 +9,6 @@ import type { AppContextDTO } from "../server/context";
 
 export const DEMO_APP_CONTEXT: AppContextDTO = {
   user: { id: "demo-user", name: "Demo Merchant", email: "demo@fixmyfeed.example" },
-  workspaces: [{ id: "demo", name: "Demo Store", role: "owner" }],
+  workspaces: [{ id: "demo", organizationId: "demo-org", name: "Demo Store", role: "owner" }],
   activeWorkspaceId: "demo",
 };
