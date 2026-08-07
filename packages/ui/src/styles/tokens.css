@@ -1,0 +1,123 @@
+/*
+ * FixMyFeed "Signal Interface" design tokens (task T100).
+ *
+ * The single source of visual truth: neutral, light-first surfaces with one
+ * Electric Indigo brand accent and dedicated semantic health colors (never
+ * color-only in components). Consumed directly as CSS variables and mirrored in
+ * TypeScript (tokens/index.ts). A Tailwind v4 app maps these into `@theme`.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Neutrals — text tiers → borders → surfaces */
+  --fmf-ink-950: #0b0b12; /* almost black */
+  --fmf-ink-800: #1c1d28; /* primary interface text */
+  --fmf-ink-600: #4a4c5a; /* secondary information */
+  --fmf-ink-400: #8a8c9b; /* metadata */
+  --fmf-fog-200: #e4e5ec; /* borders */
+  --fmf-fog-100: #f1f2f6; /* secondary surfaces */
+  --fmf-fog-50: #f7f8fb; /* canvas */
+  --fmf-white: #ffffff; /* primary surfaces */
+
+  /* Brand — Electric Indigo. Interactive only; never means "healthy". */
+  --fmf-brand: #5b5ce2;
+  --fmf-brand-strong: #4a4bd0;
+  --fmf-brand-soft: #ececfb;
+  --fmf-brand-contrast: #ffffff;
+
+  /* Semantic health */
+  --fmf-healthy: #2e9e6b;
+  --fmf-healthy-soft: #e5f4ec;
+  --fmf-info: #2f6feb;
+  --fmf-info-soft: #e7effd;
+  --fmf-warning: #b7791f;
+  --fmf-warning-soft: #fbf1de;
+  --fmf-critical: #d6303f;
+  --fmf-critical-soft: #fce8ea;
+  --fmf-neutral: #6b6e7e;
+  --fmf-neutral-soft: #eff0f3;
+
+  /* Semantic surface roles */
+  --fmf-canvas: var(--fmf-fog-50);
+  --fmf-surface: var(--fmf-white);
+  --fmf-surface-raised: var(--fmf-white);
+  --fmf-border: var(--fmf-fog-200);
+  --fmf-border-strong: #d3d5df;
+  --fmf-text: var(--fmf-ink-800);
+  --fmf-text-muted: var(--fmf-ink-600);
+  --fmf-text-subtle: var(--fmf-ink-400);
+  --fmf-focus-ring: var(--fmf-brand);
+
+  /* Typography */
+  --fmf-font-sans:
+    "Geist Sans", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fmf-font-mono:
+    "Geist Mono", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, monospace;
+
+  /* Radius — moderate, not toy-like */
+  --fmf-radius-sm: 6px;
+  --fmf-radius-md: 8px;
+  --fmf-radius-lg: 10px;
+  --fmf-radius-xl: 12px;
+
+  /* Elevation — restrained; layering by border first */
+  --fmf-shadow-popover: 0 4px 16px -4px rgb(11 11 18 / 12%);
+  --fmf-shadow-modal: 0 12px 40px -8px rgb(11 11 18 / 22%);
+
+  /* Motion — communicates state; respect prefers-reduced-motion */
+  --fmf-motion-hover: 120ms;
+  --fmf-motion-control: 150ms;
+  --fmf-motion-popover: 160ms;
+  --fmf-motion-inspector: 220ms;
+  --fmf-motion-modal: 240ms;
+  --fmf-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --fmf-ink-950: #f4f5fa;
+  --fmf-ink-800: #e7e8f0;
+  --fmf-ink-600: #b7b9c6;
+  --fmf-ink-400: #838699;
+  --fmf-fog-200: #2a2c38;
+  --fmf-fog-100: #1c1e28;
+  --fmf-fog-50: #121320;
+  --fmf-white: #191b26;
+
+  --fmf-brand: #7d7ef0;
+  --fmf-brand-strong: #9698f4;
+  --fmf-brand-soft: #23233a;
+  --fmf-brand-contrast: #0b0b12;
+
+  --fmf-healthy: #4fbd8a;
+  --fmf-healthy-soft: #16281f;
+  --fmf-info: #6098f4;
+  --fmf-info-soft: #16213a;
+  --fmf-warning: #d9a441;
+  --fmf-warning-soft: #2c2413;
+  --fmf-critical: #ef5563;
+  --fmf-critical-soft: #2f151a;
+  --fmf-neutral: #9498a8;
+  --fmf-neutral-soft: #23252f;
+
+  --fmf-canvas: var(--fmf-fog-50);
+  --fmf-surface: var(--fmf-white);
+  --fmf-surface-raised: #1f2130;
+  --fmf-border: var(--fmf-fog-200);
+  --fmf-border-strong: #363948;
+  --fmf-text: var(--fmf-ink-800);
+  --fmf-text-muted: var(--fmf-ink-600);
+  --fmf-text-subtle: var(--fmf-ink-400);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --fmf-motion-hover: 0ms;
+    --fmf-motion-control: 0ms;
+    --fmf-motion-popover: 0ms;
+    --fmf-motion-inspector: 0ms;
+    --fmf-motion-modal: 0ms;
+  }
+}
