@@ -36,3 +36,23 @@ export type {
   ChangeSetPreview,
   ChangeSetPreviewInput,
 } from "./preview.js";
+
+// T093 approval, four-eyes policy, and plan lifecycle.
+export {
+  REPAIR_PLAN_TRANSITIONS,
+  DEFAULT_APPROVAL_POLICY,
+  isTerminalPlanStatus,
+  canTransitionPlan,
+  planRiskLevel,
+  evaluateApproval,
+  evaluatePlanApproval,
+  resolvePlanApprovalStatus,
+  toRepairPlanRow,
+  toRepairApprovalRow,
+} from "./approval.js";
+export type {
+  ApprovalRecord,
+  ApprovalPolicy,
+  ApprovalEvaluation,
+  ApprovalContext,
+} from "./approval.js";

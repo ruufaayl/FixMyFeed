@@ -369,3 +369,20 @@ export type {
   DiagnosticIssueRow,
   NewDiagnosticIssue,
 } from "./diagnostic-issue-schema.js";
+// T093 repair plans + approvals.
+export {
+  REPAIR_PLAN_STATUSES,
+  REPAIR_RISK_LEVELS,
+  REPAIR_APPROVAL_DECISIONS,
+  repairPlans,
+  repairApprovals,
+} from "./repair-schema.js";
+export type {
+  RepairPlanStatus,
+  RepairRiskLevel,
+  RepairApprovalDecision,
+  RepairPlanRow,
+  NewRepairPlanRow,
+  RepairApprovalRow,
+  NewRepairApprovalRow,
+} from "./repair-schema.js";
