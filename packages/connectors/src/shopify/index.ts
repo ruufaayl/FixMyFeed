@@ -71,3 +71,25 @@ export {
   maxUpdatedAt,
 } from "./reconciliation.js";
 export type { IncrementalQueryOptions } from "./reconciliation.js";
+
+export {
+  WRITEBACK_ALLOWED_PRODUCT_FIELDS,
+  WRITEBACK_ALLOWED_VARIANT_FIELDS,
+  validateProductWriteback,
+  validateVariantWriteback,
+  assertWritebackAuthorized,
+  detectWritebackConflict,
+  assertNoWritebackConflict,
+  buildProductUpdateMutation,
+  buildVariantUpdateMutation,
+  userErrorsToConnectorError,
+} from "./writeback.js";
+export type {
+  WritebackProductField,
+  WritebackVariantField,
+  ProductWritebackInput,
+  VariantWritebackInput,
+  WritebackApproval,
+  WritebackPlan,
+  ShopifyUserError,
+} from "./writeback.js";
