@@ -104,3 +104,6 @@ export type {
   ReconciliationSummary,
   ReconciliationResult,
 } from "./reconciliation.js";
+
+// T040 Shopify connector (installation and OAuth).
+export * as shopify from "./shopify/index.js";
