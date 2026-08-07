@@ -203,7 +203,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T033 | Implement connector health quota and circuit breaker framework | E03 | In Review |
 | T034 | Implement sync cursor and reconciliation framework | E03 | In Review |
 | T040 | Implement Shopify installation and OAuth | E04 | In Review |
-| T041 | Implement Shopify bulk catalog import | E04 | Not Started |
+| T041 | Implement Shopify bulk catalog import | E04 | In Review |
 | T042 | Implement Shopify webhook ingestion | E04 | Not Started |
 | T043 | Implement Shopify incremental reconciliation | E04 | Not Started |
 | T044 | Implement Shopify controlled writeback | E04 | Not Started |
