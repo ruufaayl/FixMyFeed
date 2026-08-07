@@ -208,11 +208,11 @@ This document is the implementation authority for Workstream Registry. It define
 | T043 | Implement Shopify incremental reconciliation | E04 | In Review |
 | T044 | Implement Shopify controlled writeback | E04 | In Review |
 | T045 | Implement Shopify privacy and uninstall callbacks | E04 | In Review |
-| T050 | Implement WooCommerce credential connection | E05 | Not Started |
-| T051 | Implement WooCommerce catalog synchronization | E05 | Not Started |
-| T052 | Implement WooCommerce webhook ingestion | E05 | Not Started |
-| T053 | Implement WooCommerce reconciliation and hosting fault handling | E05 | Not Started |
-| T054 | Implement WooCommerce controlled writeback | E05 | Not Started |
+| T050 | Implement WooCommerce credential connection | E05 | In Review |
+| T051 | Implement WooCommerce catalog synchronization | E05 | In Review |
+| T052 | Implement WooCommerce webhook ingestion | E05 | In Review |
+| T053 | Implement WooCommerce reconciliation and hosting fault handling | E05 | In Review |
+| T054 | Implement WooCommerce controlled writeback | E05 | In Review |
 | T060 | Implement Google OAuth and account discovery | E06 | Not Started |
 | T061 | Implement Merchant API account and product issue ingestion | E06 | Not Started |
 | T062 | Implement aggregate status and product data ingestion | E06 | Not Started |
