@@ -62,3 +62,16 @@ export {
   planDailyQuota,
 } from "./quota.js";
 export type { GoogleErrorInput, DailyQuotaInput, QuotaPlan } from "./quota.js";
+
+export {
+  RESOLUTION_KINDS,
+  RESOLUTION_ATTRIBUTES,
+  routeIssueResolution,
+  routeProductIssues,
+} from "./resolution-routing.js";
+export type {
+  ResolutionKind,
+  ResolutionAttribute,
+  ResolutionPlan,
+  ProductResolution,
+} from "./resolution-routing.js";
