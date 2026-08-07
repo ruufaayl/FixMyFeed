@@ -29,11 +29,14 @@ import {
 import {
   createOverviewService,
   createCatalogService,
+  createIssuesService,
   type OverviewService,
   type CatalogService,
+  type IssuesService,
 } from "./services";
 import { createOverviewRepository } from "./adapters/overview-adapter";
 import { createCatalogRepository } from "./adapters/catalog-adapter";
+import { createIssuesRepository } from "./adapters/issues-adapter";
 
 /** Minimal header accessor (accepts Next's ReadonlyHeaders and Headers). */
 interface HeaderReader {
@@ -132,6 +135,7 @@ export async function getServerContext(
 interface AppServices {
   readonly overview: OverviewService;
   readonly catalog: CatalogService;
+  readonly issues: IssuesService;
 }
 let servicesCache: AppServices | undefined;
 
@@ -140,5 +144,6 @@ export function services(): AppServices {
   return (servicesCache ??= {
     overview: createOverviewService(createOverviewRepository(db())),
     catalog: createCatalogService(createCatalogRepository(db())),
+    issues: createIssuesService(createIssuesRepository(db())),
   });
 }
