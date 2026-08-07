@@ -99,3 +99,7 @@ export { identityValidators, isValidGtinChecksum } from "./validators/identity.j
 // T083 image + URL acquisition validators.
 export { mediaValidators, isHttpUrl, checkUrlAcquisition } from "./validators/media.js";
 export type { UrlProbe, UrlProbeResult } from "./validators/media.js";
+
+// T084 landing-page + consistency validators.
+export { consistencyValidators, checkLandingPages } from "./validators/consistency.js";
+export type { LandingPageFacts, LandingPageProbe } from "./validators/consistency.js";

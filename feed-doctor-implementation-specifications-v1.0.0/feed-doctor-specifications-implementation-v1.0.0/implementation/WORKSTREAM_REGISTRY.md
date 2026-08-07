@@ -230,7 +230,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T081 | Implement structural and required attribute validators | E08 | In Review |
 | T082 | Implement product identity and variant validators | E08 | In Review |
 | T083 | Implement image and URL acquisition validators | E08 | In Review |
-| T084 | Implement landing page and consistency validators | E08 | Not Started |
+| T084 | Implement landing page and consistency validators | E08 | In Review |
 | T085 | Implement issue normalization deduplication and lifecycle | E08 | Not Started |
 | T086 | Implement evidence confidence impact and prioritization | E08 | Not Started |
 | T087 | Implement diagnostic scan orchestration | E08 | Not Started |
