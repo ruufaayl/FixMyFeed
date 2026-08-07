@@ -13,6 +13,7 @@ export default tseslint.config(
     ignores: [
       "**/node_modules/**",
       "**/dist/**",
+      "**/.next/**",
       "**/*.tsbuildinfo",
       "feed-doctor-implementation-specifications-v1.0.0/**",
       "feed-doctor-specifications-foundation-v0.1.0/**",
