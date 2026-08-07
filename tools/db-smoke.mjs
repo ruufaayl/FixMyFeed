@@ -2,7 +2,7 @@
 /**
  * Real-database smoke test — run after `drizzle-kit migrate` against a live
  * PostgreSQL instance (CI Postgres service container). Validates that the full
- * migration chain (0000–0005) produced the expected tables and that the T016
+ * migration chain (0000–0007) produced the expected tables and that the T016
  * audit-log immutability trigger actually blocks UPDATE and DELETE.
  *
  * Requires DATABASE_URL. Uses the `postgres` driver already declared by
@@ -35,6 +35,10 @@ const EXPECTED_TABLES = [
   "audit_logs",
   "encrypted_credentials",
   "support_access_grants",
+  "outbox_events",
+  "inbox_events",
+  "operations",
+  "idempotency_keys",
 ];
 
 async function main() {

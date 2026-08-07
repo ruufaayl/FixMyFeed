@@ -242,3 +242,38 @@ export type {
   OutboxRelayPersistence,
   OutboxRelayResult,
 } from "./outbox.js";
+// T025 operation resources and API idempotency.
+export { OPERATION_STATUSES, OPERATION_TERMINAL_STATUSES, operations } from "./operation-schema.js";
+export type { Operation, NewOperation, OperationStatus } from "./operation-schema.js";
+export {
+  OPERATION_ERROR_CODE,
+  OperationError,
+  createOperation,
+  transitionOperation,
+  canTransitionOperation,
+  isTerminalOperationStatus,
+} from "./operations.js";
+export type {
+  NewOperationInput,
+  OperationRecord,
+  OperationTransition,
+  OperationErrorCode,
+} from "./operations.js";
+export { IDEMPOTENCY_STATUSES, idempotencyKeys } from "./idempotency-schema.js";
+export type { IdempotencyKey, NewIdempotencyKey, IdempotencyStatus } from "./idempotency-schema.js";
+export {
+  IDEMPOTENCY_ERROR_CODE,
+  DEFAULT_IDEMPOTENCY_TTL_MS,
+  IdempotencyError,
+  computeRequestFingerprint,
+  createIdempotencyRecord,
+  decideIdempotency,
+  completeIdempotencyRecord,
+} from "./idempotency.js";
+export type {
+  IdempotentRequest,
+  IdempotencyRecord,
+  IdempotencyRecordInput,
+  IdempotencyDecision,
+  IdempotencyErrorCode,
+} from "./idempotency.js";

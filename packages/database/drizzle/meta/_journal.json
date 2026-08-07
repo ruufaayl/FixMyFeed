@@ -50,6 +50,13 @@
       "when": 1786050927014,
       "tag": "0006_t022_transactional_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786060669912,
+      "tag": "0007_t025_idempotency_and_operations",
+      "breakpoints": true
     }
   ]
 }
