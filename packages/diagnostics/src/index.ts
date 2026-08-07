@@ -85,3 +85,10 @@ export type {
   ValidatorRunResult,
   EngineResult,
 } from "./engine.js";
+
+// T081 structural + required-attribute validators.
+export {
+  requiredAttributeValidators,
+  structuralValidators,
+  validatorHelpers,
+} from "./validators/structural.js";

@@ -227,7 +227,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T075 | Implement incremental synchronization checkpoints | E07 | In Review |
 | T076 | Implement full reconciliation and discrepancy records | E07 | In Review |
 | T080 | Implement validator registry and execution framework | E08 | In Review |
-| T081 | Implement structural and required attribute validators | E08 | Not Started |
+| T081 | Implement structural and required attribute validators | E08 | In Review |
 | T082 | Implement product identity and variant validators | E08 | Not Started |
 | T083 | Implement image and URL acquisition validators | E08 | Not Started |
 | T084 | Implement landing page and consistency validators | E08 | Not Started |
