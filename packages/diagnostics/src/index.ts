@@ -123,3 +123,7 @@ export {
   summarizeScan,
 } from "./scoring.js";
 export type { ScoredIssue, ScanSummary } from "./scoring.js";
+
+// T087 diagnostic scan orchestration.
+export { defaultValidators, defaultValidatorRegistry, runDiagnosticScan } from "./orchestration.js";
+export type { DiagnosticScanInput, DiagnosticScanResult } from "./orchestration.js";
