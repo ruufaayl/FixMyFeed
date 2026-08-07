@@ -72,3 +72,7 @@ export type {
   ExecutionItemOutcome,
   ExecutionOutcome,
 } from "./executor.js";
+
+// T095 verification + partial-success handling.
+export { verifyExecution, isFullyVerified, unresolvedItems } from "./verification.js";
+export type { ObserveValue, VerifiedItem, VerificationOutcome } from "./verification.js";
