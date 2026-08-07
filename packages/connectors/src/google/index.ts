@@ -33,3 +33,15 @@ export type {
   NormalizedProductIssue,
   NormalizedAccountIssue,
 } from "./product-issues.js";
+
+export {
+  buildAggregateStatusRequest,
+  parseAggregateStatuses,
+  buildProductsRequest,
+  mapGoogleProduct,
+} from "./aggregate-status.js";
+export type {
+  AggregateIssue,
+  NormalizedAggregateStatus,
+  NormalizedGoogleProduct,
+} from "./aggregate-status.js";

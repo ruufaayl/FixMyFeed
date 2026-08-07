@@ -215,7 +215,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T054 | Implement WooCommerce controlled writeback | E05 | In Review |
 | T060 | Implement Google OAuth and account discovery | E06 | In Review |
 | T061 | Implement Merchant API account and product issue ingestion | E06 | In Review |
-| T062 | Implement aggregate status and product data ingestion | E06 | Not Started |
+| T062 | Implement aggregate status and product data ingestion | E06 | In Review |
 | T063 | Implement data source and destination ingestion | E06 | Not Started |
 | T064 | Implement Merchant API quota scheduling and retries | E06 | Not Started |
 | T065 | Implement issue resolution capability routing | E06 | Not Started |
