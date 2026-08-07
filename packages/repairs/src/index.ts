@@ -23,3 +23,7 @@ export {
   defaultRemediationRegistry,
 } from "./registry.js";
 export type { SafetyClass, RiskLevel, Remediation } from "./registry.js";
+
+// T091 repair option selection + plan generation.
+export { generateRepairPlan, selectAutoApplicableChanges } from "./plan.js";
+export type { RepairChange, RepairPlan, RepairPlanInput } from "./plan.js";
