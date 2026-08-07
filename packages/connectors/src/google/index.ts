@@ -18,3 +18,18 @@ export {
   parseGoogleAccounts,
 } from "./oauth.js";
 export type { GoogleAuthInput, GoogleTokenExchangeInput, GoogleAccount } from "./oauth.js";
+
+export {
+  GOOGLE_ISSUE_SEVERITIES,
+  buildProductStatusesRequest,
+  mapProductStatus,
+  parseProductStatuses,
+  buildAccountIssuesRequest,
+  parseAccountIssues,
+} from "./product-issues.js";
+export type {
+  GoogleIssueSeverity,
+  NormalizedIssue,
+  NormalizedProductIssue,
+  NormalizedAccountIssue,
+} from "./product-issues.js";
