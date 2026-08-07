@@ -23,7 +23,8 @@
     "test:tooling": "node --test tests/tooling.test.mjs",
     "test": "node --test tests/auth.test.mjs tests/boundaries.test.mjs tests/tooling.test.mjs tests/tenancy.test.mjs",
     "check:traceability": "node tools/traceability/check.mjs",
-    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run check:traceability",
+    "check:backup-restore": "node tools/backup-restore/check.mjs",
+    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run check:traceability && pnpm run check:backup-restore",
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
