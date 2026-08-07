@@ -223,7 +223,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T071 | Implement streaming CSV TSV XML and JSON parsers | E07 | In Review |
 | T072 | Implement schema mapping and import preview | E07 | In Review |
 | T073 | Implement normalized catalog and immutable snapshots | E07 | In Review |
-| T074 | Implement product identity and variant matching | E07 | Not Started |
+| T074 | Implement product identity and variant matching | E07 | In Review |
 | T075 | Implement incremental synchronization checkpoints | E07 | Not Started |
 | T076 | Implement full reconciliation and discrepancy records | E07 | Not Started |
 | T080 | Implement validator registry and execution framework | E08 | Not Started |

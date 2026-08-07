@@ -35,3 +35,14 @@ export {
   buildImportPreview,
 } from "./schema-mapping.js";
 export type { FeedAttribute, SchemaMapping, ImportPreview } from "./schema-mapping.js";
+
+// T074 product identity + variant matching.
+export {
+  normalizeGtin,
+  normalizeSku,
+  variantIdentityKeys,
+  productIdentityKeys,
+  matchProducts,
+  matchVariants,
+} from "./identity-matching.js";
+export type { ProductMatch, ProductMatchResult, VariantMatch } from "./identity-matching.js";
