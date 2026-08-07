@@ -1,3 +1,4 @@
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { migrate } from "drizzle-orm/postgres-js/migrator";
@@ -29,7 +30,14 @@ export interface MigrationResult {
   readonly status: "completed";
 }
 
-export const DEFAULT_MIGRATIONS_FOLDER = fileURLToPath(new URL("../drizzle", import.meta.url));
+// Computed via path.join (not `new URL("../drizzle", …)`) so application bundlers
+// (e.g. Next.js/Turbopack) do not statically resolve it as a module import; the
+// runtime path is identical (packages/database/drizzle).
+export const DEFAULT_MIGRATIONS_FOLDER = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "drizzle",
+);
 
 /** Applies committed migrations with a single-purpose connection. */
 export async function runDatabaseMigrations(
