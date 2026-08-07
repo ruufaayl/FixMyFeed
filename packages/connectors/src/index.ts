@@ -86,3 +86,13 @@ export {
   isWebhookTimestampFresh,
 } from "./webhook.js";
 export type { WebhookSignatureEncoding, WebhookSignatureInput } from "./webhook.js";
+
+// T033 connector health, quota, and circuit-breaker framework.
+export { CIRCUIT_STATES, createCircuitBreaker } from "./circuit-breaker.js";
+export type { CircuitState, CircuitBreaker, CircuitBreakerOptions } from "./circuit-breaker.js";
+export { createRateLimiter } from "./rate-limiter.js";
+export type { RateLimiter, RateLimitDecision } from "./rate-limiter.js";
+export { shouldRetryConnector, computeConnectorBackoffMs } from "./retry.js";
+export type { RetryPolicy } from "./retry.js";
+export { CONNECTOR_HEALTH_STATUSES, deriveConnectorHealth } from "./health.js";
+export type { ConnectorHealthStatus, ConnectorHealthSignals, HealthThresholds } from "./health.js";
