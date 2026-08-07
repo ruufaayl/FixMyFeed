@@ -14,6 +14,7 @@ import { connectorSyncCursors } from "./connector-sync-cursor-schema.js";
 import { catalogs, catalogProducts, catalogSnapshots } from "./catalog-schema.js";
 import { catalogDiscrepancies } from "./reconciliation-schema.js";
 import { diagnosticIssues } from "./diagnostic-issue-schema.js";
+import { repairPlans, repairApprovals } from "./repair-schema.js";
 
 export { authenticationVerifications, sessions, userIdentities, users } from "./auth-schema.js";
 export { memberships, organizations, workspaces } from "./tenancy-schema.js";
@@ -30,6 +31,7 @@ export { connectorSyncCursors } from "./connector-sync-cursor-schema.js";
 export { catalogs, catalogProducts, catalogSnapshots } from "./catalog-schema.js";
 export { catalogDiscrepancies } from "./reconciliation-schema.js";
 export { diagnosticIssues } from "./diagnostic-issue-schema.js";
+export { repairPlans, repairApprovals } from "./repair-schema.js";
 
 export const schema = {
   users,
@@ -56,4 +58,6 @@ export const schema = {
   catalogSnapshots,
   catalogDiscrepancies,
   diagnosticIssues,
+  repairPlans,
+  repairApprovals,
 } as const;
