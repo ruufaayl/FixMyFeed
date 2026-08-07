@@ -95,3 +95,7 @@ export {
 
 // T082 product identity + variant validators.
 export { identityValidators, isValidGtinChecksum } from "./validators/identity.js";
+
+// T083 image + URL acquisition validators.
+export { mediaValidators, isHttpUrl, checkUrlAcquisition } from "./validators/media.js";
+export type { UrlProbe, UrlProbeResult } from "./validators/media.js";
