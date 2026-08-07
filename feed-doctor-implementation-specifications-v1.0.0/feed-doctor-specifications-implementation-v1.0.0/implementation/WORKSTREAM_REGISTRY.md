@@ -240,7 +240,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T093 | Implement approval and four-eyes policy | E09 | In Review |
 | T094 | Implement connector writeback executor | E09 | In Review |
 | T095 | Implement verification and partial success handling | E09 | In Review |
-| T096 | Implement rollback planning and execution | E09 | Not Started |
+| T096 | Implement rollback planning and execution | E09 | In Review |
 | T097 | Implement rule builder expression and simulation | E09 | Not Started |
 | T100 | Implement design system components | E10 | In Review |
 | T101 | Implement authenticated shell navigation and context | E10 | In Review |

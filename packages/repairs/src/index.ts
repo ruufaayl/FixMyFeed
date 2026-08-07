@@ -76,3 +76,12 @@ export type {
 // T095 verification + partial-success handling.
 export { verifyExecution, isFullyVerified, unresolvedItems } from "./verification.js";
 export type { ObserveValue, VerifiedItem, VerificationOutcome } from "./verification.js";
+
+// T096 rollback planning + execution.
+export {
+  buildRollbackInstructions,
+  reversibleItems,
+  executeRollback,
+  toRollbackExecutionRow,
+} from "./rollback.js";
+export type { RollbackSource } from "./rollback.js";
