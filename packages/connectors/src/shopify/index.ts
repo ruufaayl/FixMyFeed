@@ -27,3 +27,23 @@ export type {
   RawShopifyTokenResponse,
   ShopifyToken,
 } from "./oauth.js";
+
+export {
+  SHOPIFY_BULK_STATUSES,
+  SHOPIFY_PRODUCT_BULK_QUERY,
+  isBulkTerminal,
+  isBulkComplete,
+  buildProductBulkRunMutation,
+  mapShopifyProduct,
+  parseBulkJsonl,
+} from "./bulk-import.js";
+export type {
+  ShopifyBulkStatus,
+  NormalizedProduct,
+  NormalizedProductStatus,
+  NormalizedVariant,
+  NormalizedImage,
+  RawShopifyProduct,
+  RawShopifyVariant,
+  RawShopifyImage,
+} from "./bulk-import.js";
