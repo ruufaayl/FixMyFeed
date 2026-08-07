@@ -28,3 +28,12 @@ export type {
   PermissionDecisionCode,
   PermissionContext,
 } from "./rbac/evaluate.js";
+
+// Canonical normalized catalog shape (Epic E07).
+export { CATALOG_PRODUCT_STATUSES } from "./catalog.js";
+export type {
+  CatalogProduct,
+  CatalogVariant,
+  CatalogImage,
+  CatalogProductStatus,
+} from "./catalog.js";
