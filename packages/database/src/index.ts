@@ -350,3 +350,10 @@ export {
   toCatalogSnapshotRow,
 } from "./catalog.js";
 export type { CatalogSnapshotResult } from "./catalog.js";
+// T076 catalog reconciliation discrepancy records.
+export { DISCREPANCY_KINDS, catalogDiscrepancies } from "./reconciliation-schema.js";
+export type {
+  DiscrepancyKind,
+  CatalogDiscrepancyRow,
+  NewCatalogDiscrepancy,
+} from "./reconciliation-schema.js";

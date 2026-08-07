@@ -60,3 +60,11 @@ export type {
   SyncCheckpoint,
   SyncCheckpointCounts,
 } from "./sync-checkpoints.js";
+
+// T076 full reconciliation + discrepancy records.
+export { DISCREPANCY_KINDS, reconcileCatalogs, toCatalogDiscrepancyRow } from "./reconciliation.js";
+export type {
+  CatalogDiscrepancy,
+  ReconciliationResult,
+  ReconciliationSummary,
+} from "./reconciliation.js";
