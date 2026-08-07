@@ -54,3 +54,11 @@ export {
   parseDataSources,
 } from "./data-sources.js";
 export type { GoogleDestination, DataSourceType, NormalizedDataSource } from "./data-sources.js";
+
+export {
+  classifyGoogleApiError,
+  nextGoogleAttemptDelayMs,
+  shouldRetryGoogle,
+  planDailyQuota,
+} from "./quota.js";
+export type { GoogleErrorInput, DailyQuotaInput, QuotaPlan } from "./quota.js";
