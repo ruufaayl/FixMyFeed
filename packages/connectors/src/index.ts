@@ -96,3 +96,11 @@ export { shouldRetryConnector, computeConnectorBackoffMs } from "./retry.js";
 export type { RetryPolicy } from "./retry.js";
 export { CONNECTOR_HEALTH_STATUSES, deriveConnectorHealth } from "./health.js";
 export type { ConnectorHealthStatus, ConnectorHealthSignals, HealthThresholds } from "./health.js";
+
+// T034 reconciliation diff.
+export { reconcile } from "./reconciliation.js";
+export type {
+  ReconciliationOptions,
+  ReconciliationSummary,
+  ReconciliationResult,
+} from "./reconciliation.js";
