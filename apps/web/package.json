@@ -6,11 +6,15 @@
   "description": "Next.js application: public SEO pages, authenticated app routes, and bounded request/response APIs. Never executes unbounded catalog work in a request.",
   "scripts": {
     "dev": "next dev",
-    "build": "pnpm --filter @fixmyfeed/ui build && next build",
+    "build": "pnpm -w run build && next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@fixmyfeed/auth": "workspace:*",
+    "@fixmyfeed/config": "workspace:*",
+    "@fixmyfeed/database": "workspace:*",
     "@fixmyfeed/ui": "workspace:*",
     "next": "16.3.0",
     "react": "^19.2.0",
@@ -20,6 +24,7 @@
     "@tailwindcss/postcss": "^4.3.3",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "vitest": "^3.2.4"
   }
 }

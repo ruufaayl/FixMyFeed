@@ -78,6 +78,9 @@ jobs:
       - name: Web app typecheck (Next.js, outside the root composite)
         run: pnpm --filter @fixmyfeed/web typecheck
 
+      - name: Web application-boundary tests (Vitest)
+        run: pnpm --filter @fixmyfeed/web test
+
       - name: Generated traceability check
         run: pnpm run check:traceability
 
