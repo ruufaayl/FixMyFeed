@@ -129,3 +129,7 @@ export type {
   TimelineItem,
   TimelineProps,
 } from "./patterns/repairs.js";
+
+// Report card (T107).
+export { ReportCard } from "./patterns/reports.js";
+export type { ReportCardProps } from "./patterns/reports.js";

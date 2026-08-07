@@ -249,7 +249,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T104 | Implement catalog and product views | E10 | In Review |
 | T105 | Implement issue center and diagnostic views | E10 | In Review |
 | T106 | Implement repair approval and history views | E10 | In Review |
-| T107 | Implement rules monitoring reports and exports | E10 | Not Started |
+| T107 | Implement rules monitoring reports and exports | E10 | In Review |
 | T110 | Implement monitor alert and escalation engine | E11 | Not Started |
 | T111 | Implement in-app notifications | E11 | Not Started |
 | T112 | Implement SMTP email and digests | E11 | Not Started |
