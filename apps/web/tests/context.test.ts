@@ -13,8 +13,8 @@ import { DEMO_APP_CONTEXT } from "../lib/fixtures/demo-context";
 
 const session: AppSession = { userId: "u1", name: "A", email: "a@example.test" };
 const memberships: MembershipRecord[] = [
-  { workspaceId: "w1", workspaceName: "Acme", role: "owner" },
-  { workspaceId: "w2", workspaceName: "Globex", role: "editor" },
+  { workspaceId: "w1", organizationId: "o1", workspaceName: "Acme", role: "owner" },
+  { workspaceId: "w2", organizationId: "o2", workspaceName: "Globex", role: "editor" },
 ];
 
 describe("resolveAppContext", () => {

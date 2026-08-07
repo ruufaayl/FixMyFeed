@@ -19,6 +19,8 @@ export interface AppUserDTO {
 /** A workspace the user can act in, with their role there. */
 export interface WorkspaceDTO {
   readonly id: string;
+  /** The owning tenant. Server-resolved; services scope queries by it. */
+  readonly organizationId: string;
   readonly name: string;
   readonly role: string;
 }
@@ -40,6 +42,7 @@ export interface AppSession {
 /** A membership record (mapped from tenancy rows — not a Drizzle row). */
 export interface MembershipRecord {
   readonly workspaceId: string;
+  readonly organizationId: string;
   readonly workspaceName: string;
   readonly role: string;
 }
@@ -58,6 +61,7 @@ export function resolveAppContext(
 
   const workspaces: WorkspaceDTO[] = memberships.map((membership) => ({
     id: membership.workspaceId,
+    organizationId: membership.organizationId,
     name: membership.workspaceName,
     role: membership.role,
   }));
