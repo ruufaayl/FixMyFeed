@@ -66,6 +66,7 @@ test("schema: Better Auth tables remain present in the aggregated documented sch
     "auditLogs",
     "authenticationEvents",
     "authenticationVerifications",
+    "connectorSyncCursors",
     "encryptedCredentials",
     "idempotencyKeys",
     "inboxEvents",

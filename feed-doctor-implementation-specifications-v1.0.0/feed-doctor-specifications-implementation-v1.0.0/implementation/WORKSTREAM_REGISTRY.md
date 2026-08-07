@@ -201,7 +201,7 @@ This document is the implementation authority for Workstream Registry. It define
 | T031 | Implement OAuth state callback and credential lifecycle framework | E03 | In Review |
 | T032 | Implement webhook receipt verification and deduplication framework | E03 | In Review |
 | T033 | Implement connector health quota and circuit breaker framework | E03 | In Review |
-| T034 | Implement sync cursor and reconciliation framework | E03 | Not Started |
+| T034 | Implement sync cursor and reconciliation framework | E03 | In Review |
 | T040 | Implement Shopify installation and OAuth | E04 | Not Started |
 | T041 | Implement Shopify bulk catalog import | E04 | Not Started |
 | T042 | Implement Shopify webhook ingestion | E04 | Not Started |

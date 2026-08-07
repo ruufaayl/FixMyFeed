@@ -313,3 +313,22 @@ export type {
   WebhookDedupDecision,
   WebhookReceiptErrorCode,
 } from "./webhook-receipt.js";
+// T034 connector sync cursors.
+export {
+  SYNC_CURSOR_MODELS,
+  SYNC_CURSOR_STATUSES,
+  connectorSyncCursors,
+} from "./connector-sync-cursor-schema.js";
+export type {
+  ConnectorSyncCursor,
+  NewConnectorSyncCursor,
+  SyncCursorModel,
+  SyncCursorStatus,
+} from "./connector-sync-cursor-schema.js";
+export {
+  SYNC_CURSOR_ERROR_CODE,
+  SyncCursorError,
+  advanceCursor,
+  needsFullSync,
+} from "./connector-sync-cursor.js";
+export type { SyncCursorErrorCode } from "./connector-sync-cursor.js";

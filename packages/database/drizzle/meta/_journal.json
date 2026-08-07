@@ -71,6 +71,13 @@
       "when": 1786064075368,
       "tag": "0009_t032_webhook_receipts",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786084109927,
+      "tag": "0010_t034_connector_sync_cursors",
+      "breakpoints": true
     }
   ]
 }
