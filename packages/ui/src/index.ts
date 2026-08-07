@@ -117,3 +117,15 @@ export type {
   EvidenceEntry,
   EvidencePanelProps,
 } from "./patterns/issues.js";
+
+// Repair patterns (T106).
+export { RepairDiff, ApprovalPanel, Progress, Timeline } from "./patterns/repairs.js";
+export type {
+  FieldChange,
+  RepairDiffProps,
+  ApprovalStat,
+  ApprovalPanelProps,
+  ProgressProps,
+  TimelineItem,
+  TimelineProps,
+} from "./patterns/repairs.js";
