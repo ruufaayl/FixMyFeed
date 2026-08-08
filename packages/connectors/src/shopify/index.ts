@@ -72,6 +72,15 @@ export {
 } from "./reconciliation.js";
 export type { IncrementalQueryOptions } from "./reconciliation.js";
 
+export { createShopifyAdminClient } from "./admin-client.js";
+export type {
+  ShopifyAdminClient,
+  ShopifyAdminClientOptions,
+  ShopifyHttpTransport,
+  ShopifyHttpRequest,
+  ShopifyHttpResponse,
+} from "./admin-client.js";
+
 export {
   WRITEBACK_ALLOWED_PRODUCT_FIELDS,
   WRITEBACK_ALLOWED_VARIANT_FIELDS,
