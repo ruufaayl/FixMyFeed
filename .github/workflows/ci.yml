@@ -135,3 +135,9 @@ jobs:
 
       - name: Database smoke test (schema present, audit immutability enforced)
         run: node tools/db-smoke.mjs
+
+      - name: Build workspace packages (for compiled repair domain)
+        run: pnpm -w run build
+
+      - name: Repair loop E2E (apply → verify → rollback via outbox, real Postgres)
+        run: node tools/repair-e2e.mjs
