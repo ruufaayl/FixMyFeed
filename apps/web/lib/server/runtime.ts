@@ -53,6 +53,16 @@ import { createMonitoringRepository } from "./adapters/monitoring-adapter";
 import { createReportsRepository } from "./adapters/reports-adapter";
 import { createIntegrationsRepository } from "./adapters/integrations-adapter";
 import {
+  createShopifyTokenExchange,
+  createInstallPersistence,
+  hasActiveShopifyConnection,
+} from "./adapters/connector-install-adapter";
+import type {
+  ShopifyOAuthConfig,
+  ShopifyTokenExchangePort,
+  InstallPersistencePort,
+} from "./connector-install";
+import {
   createRepairGovernanceService,
   createRepairExecutionService,
   type RepairGovernanceService,
@@ -88,6 +98,40 @@ export function db(): DatabaseClient {
 /** Lazily-created Better Auth integration. */
 export function auth(): AuthIntegration {
   return (authCache ??= createAuth({ config: appConfig(), database: db() }));
+}
+
+/** The auth secret used to sign the connector-install state cookie. */
+export function authSecret(): string {
+  return appConfig().auth.secret;
+}
+
+/** Shopify OAuth configuration derived from the loaded config + feature flags. */
+export function shopifyInstallConfig(): ShopifyOAuthConfig {
+  const config = appConfig();
+  return {
+    // Mirrors the config `shopify` feature flag (client id + secret present).
+    enabled: config.shopify.clientId !== undefined && config.shopify.clientSecret !== undefined,
+    clientId: config.shopify.clientId,
+    clientSecret: config.shopify.clientSecret,
+    appUrl: config.shopify.appUrl,
+    vaultReady: config.encryption.dataKey !== undefined,
+  };
+}
+
+/** Concrete Shopify install ports (real token exchange + vault-backed storage). */
+export function shopifyInstallPorts(): {
+  exchange: ShopifyTokenExchangePort;
+  persistence: InstallPersistencePort;
+} {
+  return {
+    exchange: createShopifyTokenExchange(),
+    persistence: createInstallPersistence(db(), appConfig()),
+  };
+}
+
+/** Whether the org already has an active Shopify connection. */
+export function shopifyConnectionActive(organizationId: string): Promise<boolean> {
+  return hasActiveShopifyConnection(db(), organizationId);
 }
 
 interface SessionResponse {

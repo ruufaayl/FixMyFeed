@@ -1,86 +1,41 @@
-"use client";
-
 /**
- * Onboarding page (task T102).
+ * Onboarding (connector install) — live data.
  *
- * The compact "connect → connect → scan" flow. Connection state is local demo
- * state here; later tasks wire it to real OAuth connect actions and kick off the
- * first scan, whose result becomes the merchant's first real experience
- * ("We found N issues affecting M products").
+ * Server component: resolves context + Shopify config/connection state through the
+ * typed boundary and hands them to the client `OnboardingView`, which runs the
+ * real Shopify OAuth install. Reachable pre-auth (it's the "get started" entry),
+ * so it degrades gracefully when unauthenticated or when Shopify is unconfigured.
  */
-import { useState } from "react";
-import { Button, ConnectCard, Stepper, Surface, type ConnectState } from "@fixmyfeed/ui";
+import {
+  getServerContext,
+  shopifyInstallConfig,
+  shopifyConnectionActive,
+} from "@/lib/server/runtime";
+import { resolveScope } from "@/lib/server/tenant-scope";
+import { OnboardingView } from "./onboarding-view";
 
-export default function OnboardingPage() {
-  const [shopify, setShopify] = useState<ConnectState>("not-connected");
-  const [google, setGoogle] = useState<ConnectState>("not-connected");
+export const dynamic = "force-dynamic";
 
-  const step = (connected: ConnectState) => connected === "connected";
-  const steps = [
-    {
-      id: "store",
-      label: "Connect your store",
-      state: step(shopify) ? ("done" as const) : ("active" as const),
-    },
-    {
-      id: "google",
-      label: "Connect Google Merchant Center",
-      state: step(shopify)
-        ? step(google)
-          ? ("done" as const)
-          : ("active" as const)
-        : ("upcoming" as const),
-    },
-    {
-      id: "scan",
-      label: "Run your first scan",
-      state: step(shopify) && step(google) ? ("active" as const) : ("upcoming" as const),
-    },
-  ];
+export default async function OnboardingPage() {
+  const context = await getServerContext();
+  const config = shopifyInstallConfig();
+
+  let organizationId: string | null = null;
+  if (context !== null) {
+    try {
+      organizationId = resolveScope(context).organizationId;
+    } catch {
+      organizationId = null;
+    }
+  }
+  const shopifyConnected =
+    organizationId !== null ? await shopifyConnectionActive(organizationId) : false;
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-[28px] font-semibold text-[var(--fmf-text)]">Welcome to FixMyFeed</h1>
-        <p className="text-[14px] text-[var(--fmf-text-muted)]">
-          Let&rsquo;s find out what&rsquo;s costing your catalog visibility.
-        </p>
-      </div>
-
-      <Surface padding="lg">
-        <Stepper steps={steps} />
-      </Surface>
-
-      <div className="flex flex-col gap-3">
-        <ConnectCard
-          title="Shopify"
-          description="Import your product catalog."
-          state={shopify}
-          action={
-            <Button
-              size="sm"
-              variant={shopify === "connected" ? "secondary" : "primary"}
-              onClick={() => setShopify("connected")}
-            >
-              {shopify === "connected" ? "Connected" : "Connect"}
-            </Button>
-          }
-        />
-        <ConnectCard
-          title="Google Merchant Center"
-          description="Read product disapprovals and issues."
-          state={google}
-          action={
-            <Button
-              size="sm"
-              variant={google === "connected" ? "secondary" : "primary"}
-              onClick={() => setGoogle("connected")}
-            >
-              {google === "connected" ? "Connected" : "Connect"}
-            </Button>
-          }
-        />
-      </div>
-    </div>
+    <OnboardingView
+      authenticated={organizationId !== null}
+      shopifyConfigured={config.enabled && config.vaultReady}
+      shopifyConnected={shopifyConnected}
+    />
   );
 }
