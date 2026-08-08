@@ -9,7 +9,12 @@
  */
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { shopifyInstallConfig, shopifyInstallPorts, authSecret } from "@/lib/server/runtime";
+import {
+  shopifyInstallConfig,
+  shopifyInstallPorts,
+  authSecret,
+  scheduleOnboarding,
+} from "@/lib/server/runtime";
 import {
   completeShopifyInstall,
   verifyInstallState,
@@ -39,11 +44,13 @@ export async function GET(request: Request): Promise<Response> {
   const params = Object.fromEntries(new URL(request.url).searchParams.entries());
   try {
     const ports = shopifyInstallPorts();
-    await completeShopifyInstall(
+    const { shop } = await completeShopifyInstall(
       { params, cookie, clientId: config.clientId, clientSecret: config.clientSecret },
       ports.exchange,
       ports.persistence,
     );
+    // Kick off the connect → import → scan journey (durable ids only).
+    await scheduleOnboarding(cookie.organizationId, shop);
     return redirect("?connected=shopify");
   } catch {
     return redirect("?error=install");

@@ -9,29 +9,34 @@
  * redirects back with a status the view surfaces. Google is not yet wired.
  * Design unchanged from E10.
  */
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Button,
   ConnectCard,
   Input,
+  Metric,
+  Progress,
   Stepper,
   Surface,
   EmptyState,
   type ConnectState,
 } from "@fixmyfeed/ui";
-import { startShopifyInstall } from "./actions";
+import type { OnboardingStatusDTO } from "@/lib/server/onboarding-run";
+import { startShopifyInstall, getOnboardingStatus } from "./actions";
 
 export interface OnboardingViewProps {
   readonly authenticated: boolean;
   readonly shopifyConfigured: boolean;
   readonly shopifyConnected: boolean;
+  readonly onboarding: OnboardingStatusDTO;
 }
 
 export function OnboardingView({
   authenticated,
   shopifyConfigured,
   shopifyConnected,
+  onboarding: initialOnboarding,
 }: OnboardingViewProps) {
   const params = useSearchParams();
   const justConnected = params.get("connected") === "shopify" || shopifyConnected;
@@ -40,8 +45,20 @@ export function OnboardingView({
   const [shop, setShop] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [onboarding, setOnboarding] = useState(initialOnboarding);
 
-  const shopifyState: ConnectState = justConnected ? "connected" : "not-connected";
+  // Poll the import→scan journey while it is queued/running.
+  useEffect(() => {
+    if (onboarding.state !== "queued" && onboarding.state !== "running") return;
+    const timer = setInterval(async () => {
+      const result = await getOnboardingStatus();
+      if (result.ok) setOnboarding(result.status);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [onboarding.state]);
+
+  const scanDone = onboarding.state === "completed";
+  const scanActive = onboarding.state === "queued" || onboarding.state === "running";
 
   const steps = [
     {
@@ -50,16 +67,26 @@ export function OnboardingView({
       state: justConnected ? ("done" as const) : ("active" as const),
     },
     {
-      id: "google",
-      label: "Connect Google Merchant Center",
-      state: justConnected ? ("active" as const) : ("upcoming" as const),
+      id: "import",
+      label: "Import your catalog",
+      state: scanDone
+        ? ("done" as const)
+        : scanActive
+          ? ("active" as const)
+          : ("upcoming" as const),
     },
     {
       id: "scan",
       label: "Run your first scan",
-      state: justConnected ? ("active" as const) : ("upcoming" as const),
+      state: scanDone
+        ? ("done" as const)
+        : scanActive
+          ? ("active" as const)
+          : ("upcoming" as const),
     },
   ];
+
+  const shopifyState: ConnectState = justConnected ? "connected" : "not-connected";
 
   function connect() {
     setError(null);
@@ -104,6 +131,34 @@ export function OnboardingView({
       <Surface padding="lg">
         <Stepper steps={steps} />
       </Surface>
+
+      {onboarding.state !== "none" && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-[16px] font-semibold text-[var(--fmf-text)]">Import &amp; scan</h2>
+          <Surface>
+            {onboarding.state === "completed" ? (
+              <div className="flex flex-wrap gap-6">
+                <Metric label="Health score" value={String(onboarding.healthScore ?? "—")} />
+                <Metric label="Products imported" value={String(onboarding.productCount ?? "—")} />
+                <Metric label="Issues found" value={String(onboarding.issuesFound ?? "—")} />
+              </div>
+            ) : onboarding.state === "failed" ? (
+              <EmptyState
+                kind="unavailable"
+                title="Import could not complete"
+                description="We couldn't finish the first import and scan. You can retry from Integrations."
+              />
+            ) : (
+              <Progress
+                value={onboarding.progress}
+                max={100}
+                label="Importing your catalog and running the first scan…"
+                tone="brand"
+              />
+            )}
+          </Surface>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3">
         <Surface padding="md">

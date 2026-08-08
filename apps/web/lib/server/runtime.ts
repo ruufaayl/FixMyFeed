@@ -57,6 +57,8 @@ import {
   createInstallPersistence,
   hasActiveShopifyConnection,
 } from "./adapters/connector-install-adapter";
+import { scheduleOnboardingRun, getLatestOnboardingStatus } from "./adapters/onboarding-adapter";
+import type { OnboardingStatusDTO } from "./onboarding-run";
 import type {
   ShopifyOAuthConfig,
   ShopifyTokenExchangePort,
@@ -132,6 +134,16 @@ export function shopifyInstallPorts(): {
 /** Whether the org already has an active Shopify connection. */
 export function shopifyConnectionActive(organizationId: string): Promise<boolean> {
   return hasActiveShopifyConnection(db(), organizationId);
+}
+
+/** Schedules the connect→import→scan onboarding run (durable ids only). */
+export function scheduleOnboarding(organizationId: string, shop: string): Promise<string> {
+  return scheduleOnboardingRun(db(), organizationId, shop);
+}
+
+/** The latest onboarding journey status for the org. */
+export function onboardingStatus(organizationId: string): Promise<OnboardingStatusDTO> {
+  return getLatestOnboardingStatus(db(), organizationId);
 }
 
 interface SessionResponse {
