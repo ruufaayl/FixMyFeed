@@ -1,43 +1,43 @@
 /**
- * Reports & exports (task T107).
+ * Reports & exports (task T158) — live data.
  *
- * Downloadable report summaries. Export controls are permission-gated and produce
- * the file server-side (wired in a later task); rendered here as actions.
+ * Server component: resolves context and reads live report summaries (derived
+ * aggregates) through the typed boundary, then hands them to the client
+ * `ReportsView` (which handles the permission-gated CSV export). No sample-data
+ * fallback; unauthenticated / error requests render explicit states.
  */
 import Link from "next/link";
-import { ReportCard, buttonVariants } from "@fixmyfeed/ui";
+import { EmptyState, buttonVariants } from "@fixmyfeed/ui";
+import { getServerContext, services } from "@/lib/server/runtime";
+import { isAppError } from "@/lib/server/errors";
+import type { ReportSummaryDTO } from "@/lib/server/dto";
+import { ReportsView } from "./reports-view";
 
-export default function ReportsPage() {
-  const exportAction = (
-    <Link href="/reports" className={buttonVariants({ variant: "secondary", size: "sm" })}>
-      Export CSV
-    </Link>
-  );
+export const dynamic = "force-dynamic";
 
-  return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6">
-      <h1 className="text-[28px] font-semibold text-[var(--fmf-text)]">Reports</h1>
+export default async function ReportsPage() {
+  const context = await getServerContext();
+  if (context === null) {
+    return (
+      <EmptyState
+        kind="no-permission"
+        title="Sign in to view reports"
+        action={
+          <Link href="/onboarding" className={buttonVariants({ size: "sm" })}>
+            Get started
+          </Link>
+        }
+      />
+    );
+  }
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <ReportCard
-          title="Catalog health"
-          description="Health score over time"
-          stat="82"
-          actions={exportAction}
-        />
-        <ReportCard
-          title="Open issues"
-          description="By severity and root cause"
-          stat="1,248"
-          actions={exportAction}
-        />
-        <ReportCard
-          title="Repairs applied"
-          description="Last 30 days"
-          stat="3,912"
-          actions={exportAction}
-        />
-      </div>
-    </div>
-  );
+  let reports: readonly ReportSummaryDTO[];
+  try {
+    reports = await services().reports.listReports(context);
+  } catch (error) {
+    const message = isAppError(error) ? error.message : "Could not load reports";
+    return <EmptyState kind="unavailable" title="Reports unavailable" description={message} />;
+  }
+
+  return <ReportsView reports={reports} />;
 }
