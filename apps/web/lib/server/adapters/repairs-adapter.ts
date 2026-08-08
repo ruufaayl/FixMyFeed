@@ -174,13 +174,21 @@ export function createRepairsRepository(client: DatabaseClient): RepairsReposito
     },
     async resolveChange(scope, planId, ref, value): Promise<void> {
       const [row] = await db
-        .select({ changeSet: repairPlans.changeSet, version: repairPlans.version })
+        .select({
+          changeSet: repairPlans.changeSet,
+          version: repairPlans.version,
+          status: repairPlans.status,
+        })
         .from(repairPlans)
         .where(
           and(eq(repairPlans.organizationId, scope.organizationId), eq(repairPlans.id, planId)),
         )
         .limit(1);
       if (!row) throw appError.notFound("Repair plan not found");
+      // The plan is locked from change edits once it leaves the planning phase.
+      if (row.status !== "draft" && row.status !== "pending_approval") {
+        throw appError.validation("Plan can no longer be edited", { status: row.status });
+      }
 
       const changes = (row.changeSet as RepairChange[]).map((c) =>
         c.productExternalId === ref.productExternalId && c.field === ref.field

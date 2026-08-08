@@ -40,6 +40,18 @@ import { createOverviewRepository } from "./adapters/overview-adapter";
 import { createCatalogRepository } from "./adapters/catalog-adapter";
 import { createIssuesRepository } from "./adapters/issues-adapter";
 import { createRepairsRepository } from "./adapters/repairs-adapter";
+import {
+  createRepairGovernanceService,
+  createRepairExecutionService,
+  type RepairGovernanceService,
+  type RepairExecutionService,
+} from "./repair-ops";
+import {
+  createGovernanceRepository,
+  createExecutionStore,
+  createRepairQueue,
+  createAuditSink,
+} from "./adapters/repair-ops-adapters";
 
 /** Minimal header accessor (accepts Next's ReadonlyHeaders and Headers). */
 interface HeaderReader {
@@ -140,15 +152,27 @@ interface AppServices {
   readonly catalog: CatalogService;
   readonly issues: IssuesService;
   readonly repairs: RepairsService;
+  readonly repairGovernance: RepairGovernanceService;
+  readonly repairExecution: RepairExecutionService;
 }
 let servicesCache: AppServices | undefined;
 
 /** The wired application services (repository adapters over the DB client). */
 export function services(): AppServices {
-  return (servicesCache ??= {
-    overview: createOverviewService(createOverviewRepository(db())),
-    catalog: createCatalogService(createCatalogRepository(db())),
-    issues: createIssuesService(createIssuesRepository(db())),
-    repairs: createRepairsService(createRepairsRepository(db())),
-  });
+  if (servicesCache) return servicesCache;
+  const client = db();
+  const audit = createAuditSink(client);
+  servicesCache = {
+    overview: createOverviewService(createOverviewRepository(client)),
+    catalog: createCatalogService(createCatalogRepository(client)),
+    issues: createIssuesService(createIssuesRepository(client)),
+    repairs: createRepairsService(createRepairsRepository(client)),
+    repairGovernance: createRepairGovernanceService(createGovernanceRepository(client), audit),
+    repairExecution: createRepairExecutionService(
+      createExecutionStore(client),
+      createRepairQueue(client),
+      audit,
+    ),
+  };
+  return servicesCache;
 }
