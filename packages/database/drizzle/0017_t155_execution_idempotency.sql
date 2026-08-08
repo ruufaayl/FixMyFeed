@@ -1,0 +1,2 @@
+ALTER TABLE "repair_executions" ADD COLUMN "idempotency_key" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "repair_executions_org_idempotency_unique" ON "repair_executions" USING btree ("organization_id","idempotency_key");

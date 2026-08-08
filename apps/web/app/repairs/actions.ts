@@ -29,3 +29,39 @@ export async function resolveRepairChange(
     return { ok: false, error: toErrorEnvelope(normalizeError(error)) };
   }
 }
+
+/** Approve or reject a plan (four-eyes enforced server-side). Never executes. */
+export async function decidePlan(
+  planId: string,
+  decision: "approve" | "reject",
+  note?: string,
+): Promise<ResolveResult> {
+  try {
+    const context = await getServerContext();
+    const governance = services().repairGovernance;
+    if (decision === "approve") await governance.approve(context, planId, note);
+    else await governance.reject(context, planId, note);
+    revalidatePath("/repairs");
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: toErrorEnvelope(normalizeError(error)) };
+  }
+}
+
+/** Request asynchronous writeback execution; returns a durable execution id. */
+export async function requestExecution(
+  planId: string,
+  idempotencyKey: string,
+): Promise<
+  | { readonly ok: true; readonly executionId: string; readonly status: string }
+  | { readonly ok: false; readonly error: AppErrorEnvelope }
+> {
+  try {
+    const context = await getServerContext();
+    const ref = await services().repairExecution.requestExecution(context, planId, idempotencyKey);
+    revalidatePath("/repairs");
+    return { ok: true, executionId: ref.executionId, status: ref.status };
+  } catch (error) {
+    return { ok: false, error: toErrorEnvelope(normalizeError(error)) };
+  }
+}

@@ -11,7 +11,16 @@
  * package may not import repairs).
  */
 import { sql } from "drizzle-orm";
-import { check, index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  check,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { repairPlans } from "./repair-schema.js";
 import { auditTimestamps, primaryId, recordVersion } from "./columns.js";
@@ -52,6 +61,8 @@ export const repairExecutions = pgTable(
       .notNull()
       .references(() => repairPlans.id, { onDelete: "cascade" }),
     kind: text("kind", { enum: REPAIR_EXECUTION_KINDS }).$type<RepairExecutionKind>().notNull(),
+    /** Client-supplied dedup key; makes execution requests idempotent. */
+    idempotencyKey: text("idempotency_key"),
     status: text("status", { enum: REPAIR_EXECUTION_STATUSES })
       .$type<RepairExecutionStatus>()
       .notNull()
@@ -75,6 +86,11 @@ export const repairExecutions = pgTable(
     ),
     check("repair_executions_version_check", sql`${table.version} > 0`),
     index("repair_executions_plan_idx").on(table.planId),
+    // One execution per (tenant, idempotency key); duplicate requests dedupe.
+    uniqueIndex("repair_executions_org_idempotency_unique").on(
+      table.organizationId,
+      table.idempotencyKey,
+    ),
   ],
 );
 

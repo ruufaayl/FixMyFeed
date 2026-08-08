@@ -3,25 +3,28 @@
 /**
  * Repair workspace view (task T154) — client.
  *
- * Renders a live repair plan through the E10 Signal Interface, using the T154
- * patterns: ready changes as a RepairDiff, `needs_input` changes as AssistedChange
- * forms, and `conflict` entries as ConflictResolution cards. Resolutions persist
- * via a server action. Approval/execution are read-only here (approval lands in
- * T155). Design unchanged from E10.
+ * Renders a live repair plan through the E10 Signal Interface: ready changes as a
+ * RepairDiff, `needs_input` as AssistedChange, `conflict` as ConflictResolution
+ * (T154), plus approve/reject and asynchronous execute actions with live
+ * execution progress (T155). Approval and execution are separate explicit actions;
+ * all mutations go through server actions. Terminology distinguishes "applied"
+ * (T155) from "verified" (T156). Design unchanged from E10.
  */
 import { useState, useTransition } from "react";
 import {
   RepairDiff,
   ApprovalPanel,
+  Progress,
   Surface,
   Badge,
+  Button,
   AssistedChange,
   ConflictResolution,
   EmptyState,
   type FieldChange,
 } from "@fixmyfeed/ui";
 import type { RepairPlanDTO } from "@/lib/server/dto";
-import { resolveRepairChange } from "./actions";
+import { resolveRepairChange, decidePlan, requestExecution } from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -38,6 +41,9 @@ const STATUS_LABEL: Record<string, string> = {
 export function RepairsView({ plan }: { plan: RepairPlanDTO }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // Stable idempotency key per page load — duplicate submits reuse it, so a
+  // double-click/network retry never creates a second execution.
+  const [idempotencyKey] = useState(() => globalThis.crypto.randomUUID());
 
   function resolve(productExternalId: string, field: string, value: string) {
     setError(null);
@@ -47,9 +53,29 @@ export function RepairsView({ plan }: { plan: RepairPlanDTO }) {
     });
   }
 
+  function decide(decision: "approve" | "reject") {
+    setError(null);
+    startTransition(async () => {
+      const result = await decidePlan(plan.id, decision);
+      if (!result.ok) setError(result.error.message);
+    });
+  }
+
+  function execute() {
+    setError(null);
+    startTransition(async () => {
+      const result = await requestExecution(plan.id, idempotencyKey);
+      if (!result.ok) setError(result.error.message);
+    });
+  }
+
   const ready = plan.preview.filter((e) => e.status === "ready");
   const needsInput = plan.preview.filter((e) => e.status === "needs_input");
   const conflicts = plan.preview.filter((e) => e.status === "conflict");
+  const canApprove = plan.status === "draft" || plan.status === "pending_approval";
+  const canExecute =
+    plan.status === "approved" && needsInput.length === 0 && conflicts.length === 0;
+  const execution = plan.execution;
 
   const diffChanges: FieldChange[] = ready.map((e) => ({
     field: e.change.field,
@@ -87,12 +113,53 @@ export function RepairsView({ plan }: { plan: RepairPlanDTO }) {
               { label: "Ready", value: ready.length },
               { label: "Needs input", value: needsInput.length },
               { label: "Conflicts", value: conflicts.length },
-              { label: "Required approvals", value: plan.requiredApprovals },
+              { label: "Approvals", value: `${plan.approvals.length} / ${plan.requiredApprovals}` },
             ]}
             reversible
+            preview={
+              canApprove ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={pending}
+                  onClick={() => decide("reject")}
+                >
+                  Reject
+                </Button>
+              ) : undefined
+            }
+            approve={
+              canApprove ? (
+                <Button size="sm" disabled={pending} onClick={() => decide("approve")}>
+                  Approve
+                </Button>
+              ) : plan.status === "approved" ? (
+                <Button size="sm" disabled={pending || !canExecute} onClick={execute}>
+                  Execute repair
+                </Button>
+              ) : undefined
+            }
           />
         </div>
       </div>
+
+      {execution !== null && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-[16px] font-semibold text-[var(--fmf-text)]">Execution</h2>
+          <Surface>
+            <Progress
+              value={execution.succeeded + execution.failed}
+              max={execution.total}
+              label={`Applying repair — ${execution.status.replace("_", " ")}`}
+              tone={execution.status === "failed" ? "critical" : "brand"}
+            />
+            <p className="mt-2 text-[12px] text-[var(--fmf-text-muted)]">
+              {execution.succeeded} changes applied · {execution.failed} failed · {execution.total}{" "}
+              total. Verification runs separately.
+            </p>
+          </Surface>
+        </div>
+      )}
 
       {needsInput.length > 0 && (
         <div className="flex flex-col gap-2">
