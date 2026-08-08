@@ -9,7 +9,7 @@ import Link from "next/link";
 import { EmptyState, buttonVariants } from "@fixmyfeed/ui";
 import { getServerContext, services } from "@/lib/server/runtime";
 import { isAppError } from "@/lib/server/errors";
-import type { RepairPlanDTO } from "@/lib/server/dto";
+import type { RepairExceptionDTO, RepairPlanDTO } from "@/lib/server/dto";
 import { RepairsView } from "./repairs-view";
 
 export const dynamic = "force-dynamic";
@@ -53,5 +53,22 @@ export default async function RepairsPage() {
     );
   }
 
-  return <RepairsView plan={plan} />;
+  // After a terminal execution, surface any changes that failed to write or did
+  // not verify (T156). Best-effort — exceptions never block the workspace.
+  let exceptions: readonly RepairExceptionDTO[] = [];
+  const execution = plan.execution;
+  if (
+    execution !== null &&
+    (execution.status === "completed" ||
+      execution.status === "partially_completed" ||
+      execution.status === "failed")
+  ) {
+    try {
+      exceptions = await services().repairs.listExceptions(context, execution.id);
+    } catch {
+      exceptions = [];
+    }
+  }
+
+  return <RepairsView plan={plan} exceptions={exceptions} />;
 }

@@ -61,6 +61,11 @@ export const repairExecutions = pgTable(
       .notNull()
       .references(() => repairPlans.id, { onDelete: "cascade" }),
     kind: text("kind", { enum: REPAIR_EXECUTION_KINDS }).$type<RepairExecutionKind>().notNull(),
+    /**
+     * The prior execution this run recovers from: a retry re-applies its failed
+     * items, a rollback reverses its verified items. Null for a first apply.
+     */
+    sourceExecutionId: uuid("source_execution_id"),
     /** Client-supplied dedup key; makes execution requests idempotent. */
     idempotencyKey: text("idempotency_key"),
     status: text("status", { enum: REPAIR_EXECUTION_STATUSES })

@@ -20,11 +20,18 @@ import {
   Button,
   AssistedChange,
   ConflictResolution,
+  RepairExceptions,
   EmptyState,
   type FieldChange,
 } from "@fixmyfeed/ui";
-import type { RepairPlanDTO } from "@/lib/server/dto";
-import { resolveRepairChange, decidePlan, requestExecution } from "./actions";
+import type { RepairExceptionDTO, RepairPlanDTO } from "@/lib/server/dto";
+import {
+  resolveRepairChange,
+  decidePlan,
+  requestExecution,
+  retryExecution,
+  rollbackExecution,
+} from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -38,12 +45,21 @@ const STATUS_LABEL: Record<string, string> = {
   rolled_back: "Rolled back",
 };
 
-export function RepairsView({ plan }: { plan: RepairPlanDTO }) {
+export function RepairsView({
+  plan,
+  exceptions,
+}: {
+  plan: RepairPlanDTO;
+  exceptions: readonly RepairExceptionDTO[];
+}) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   // Stable idempotency key per page load — duplicate submits reuse it, so a
   // double-click/network retry never creates a second execution.
   const [idempotencyKey] = useState(() => globalThis.crypto.randomUUID());
+  // Stable base for recovery idempotency keys (per rendered exception set), so a
+  // double-click / network retry of the same recovery action never duplicates it.
+  const [recoveryKey] = useState(() => globalThis.crypto.randomUUID());
 
   function resolve(productExternalId: string, field: string, value: string) {
     setError(null);
@@ -65,6 +81,24 @@ export function RepairsView({ plan }: { plan: RepairPlanDTO }) {
     setError(null);
     startTransition(async () => {
       const result = await requestExecution(plan.id, idempotencyKey);
+      if (!result.ok) setError(result.error.message);
+    });
+  }
+
+  function retry(scope: string) {
+    if (plan.execution === null) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await retryExecution(plan.execution!.id, `${recoveryKey}:retry:${scope}`);
+      if (!result.ok) setError(result.error.message);
+    });
+  }
+
+  function rollback() {
+    if (plan.execution === null) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await rollbackExecution(plan.execution!.id, `${recoveryKey}:rollback`);
       if (!result.ok) setError(result.error.message);
     });
   }
@@ -157,6 +191,33 @@ export function RepairsView({ plan }: { plan: RepairPlanDTO }) {
               {execution.succeeded} changes applied · {execution.failed} failed · {execution.total}{" "}
               total. Verification runs separately.
             </p>
+          </Surface>
+        </div>
+      )}
+
+      {execution !== null && exceptions.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-[16px] font-semibold text-[var(--fmf-text)]">Exceptions</h2>
+          <p className="text-[12px] text-[var(--fmf-text-muted)]">
+            {execution.succeeded} verified · {exceptions.length} need review. Retry re-applies
+            failed changes; roll back restores verified changes to their prior values.
+          </p>
+          <Surface padding="sm">
+            <RepairExceptions
+              exceptions={exceptions.map((e) => ({
+                itemId: e.itemId,
+                productExternalId: e.productExternalId,
+                field: e.field,
+                status: e.status,
+                error: e.error,
+                proposed: e.after,
+                observed: e.observed,
+              }))}
+              busy={pending}
+              onRetry={(itemId) => retry(itemId)}
+              onRetryAll={() => retry("all")}
+              onRollbackAll={rollback}
+            />
           </Surface>
         </div>
       )}

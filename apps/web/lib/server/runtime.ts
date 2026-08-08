@@ -134,6 +134,30 @@ export function createDrizzleMembershipLoader(client: DatabaseClient): Membershi
   };
 }
 
+interface SessionFreshnessResponse {
+  readonly session?: { readonly createdAt?: string; readonly updatedAt?: string };
+}
+
+/**
+ * Whether the current session was (re)authenticated within `maxAgeMs`. Backs the
+ * `rollback:execute` `recent_authentication` condition — rollback is destructive
+ * and requires a recent sign-in / step-up. Best-effort: unknown freshness → false.
+ */
+export async function isRecentlyAuthenticated(maxAgeMs = 15 * 60_000): Promise<boolean> {
+  const requestHeaders = await headers();
+  const integration = auth();
+  const request = new Request(`${integration.policy.baseUrl}/api/auth/get-session`, {
+    headers: { cookie: requestHeaders.get("cookie") ?? "" },
+  });
+  const response = await integration.handler(request);
+  if (!response.ok) return false;
+  const data = (await response.json().catch(() => null)) as SessionFreshnessResponse | null;
+  const stamp = data?.session?.updatedAt ?? data?.session?.createdAt;
+  if (typeof stamp !== "string") return false;
+  const at = Date.parse(stamp);
+  return Number.isFinite(at) && Date.now() - at <= maxAgeMs;
+}
+
 /**
  * Resolves the application context for the current server request from cookies.
  * Server components / actions call this — never the client.

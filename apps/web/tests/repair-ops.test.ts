@@ -14,10 +14,15 @@ import {
   createRepairGovernanceService,
   createRepairExecutionService,
   runRepairExecution,
+  runRepairRollback,
+  runRepairVerification,
   type ExecutionStore,
   type GovernanceRepository,
+  type ObservePort,
   type PlanGovernance,
   type RepairQueue,
+  type RollbackWorkerRepository,
+  type VerificationWorkerRepository,
   type WorkerRepository,
 } from "../lib/server/repair-ops";
 
@@ -172,6 +177,16 @@ describe("requestExecution (async + idempotent)", () => {
       },
       lockPlan: vi.fn(async () => true),
       getExecution: async (_s, id) => ({ executionId: id, kind: "repair_apply", status: "queued" }),
+      getRetryTarget: async () => ({ planId: "plan", failedItems: 1 }),
+      createRetryExecution: async (_s, _src, key) => ({
+        executionId: `retry-${key}`,
+        created: true,
+      }),
+      getRollbackTarget: async () => ({ planId: "plan", reversibleItems: 1 }),
+      createRollbackExecution: async (_s, _src, key) => ({
+        executionId: `rb-${key}`,
+        created: true,
+      }),
     };
     const queue: RepairQueue = { enqueue: vi.fn(async () => {}) };
     return { store, queue };
@@ -265,5 +280,195 @@ describe("runRepairExecution (worker)", () => {
       "u2",
     );
     expect(persisted[0]).toEqual({ status: "partially_completed", succeeded: 1, failed: 1 });
+  });
+});
+
+// ── T156: retry, rollback, verification ──────────────────────────────────────
+
+function recoveryStore(overrides: Partial<ExecutionStore> = {}) {
+  const store: ExecutionStore = {
+    getReadiness: async () => ({
+      status: "approved",
+      hasNeedsInput: false,
+      hasConflict: false,
+      connectorCapable: true,
+      version: 1,
+    }),
+    createQueuedExecution: async (_s, _p, key) => ({ executionId: `e-${key}`, created: true }),
+    lockPlan: async () => true,
+    getExecution: async (_s, id) => ({ executionId: id, kind: "repair_apply", status: "queued" }),
+    getRetryTarget: async () => ({ planId: "plan", failedItems: 2 }),
+    createRetryExecution: async (_s, _src, key) => ({ executionId: `retry-${key}`, created: true }),
+    getRollbackTarget: async () => ({ planId: "plan", reversibleItems: 3 }),
+    createRollbackExecution: async (_s, _src, key) => ({ executionId: `rb-${key}`, created: true }),
+    ...overrides,
+  };
+  return store;
+}
+
+describe("retryExecution", () => {
+  it("re-applies failed items as a new apply execution and enqueues once", async () => {
+    const created: string[] = [];
+    const store = recoveryStore({
+      createRetryExecution: async (_s, _src, key) => {
+        const isNew = !created.includes(key);
+        if (isNew) created.push(key);
+        return { executionId: `retry-${key}`, created: isNew };
+      },
+    });
+    const queue: RepairQueue = { enqueue: vi.fn(async () => {}) };
+    const svc = createRepairExecutionService(store, queue, noopAudit);
+    const first = await svc.retryExecution(ctx("approver"), "src", "k1");
+    const dup = await svc.retryExecution(ctx("approver"), "src", "k1");
+    expect(first).toEqual({ executionId: "retry-k1", kind: "repair_apply", status: "queued" });
+    expect(dup.executionId).toBe("retry-k1");
+    expect(queue.enqueue).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects when there is nothing to retry", async () => {
+    const store = recoveryStore({ getRetryTarget: async () => ({ planId: "p", failedItems: 0 }) });
+    const svc = createRepairExecutionService(store, { enqueue: vi.fn() }, noopAudit);
+    await expect(svc.retryExecution(ctx("approver"), "src", "k")).rejects.toMatchObject({
+      code: APP_ERROR_CODE.VALIDATION,
+    });
+  });
+
+  it("requires the execute permission", async () => {
+    const svc = createRepairExecutionService(recoveryStore(), { enqueue: vi.fn() }, noopAudit);
+    await expect(svc.retryExecution(ctx("viewer"), "src", "k")).rejects.toMatchObject({
+      code: APP_ERROR_CODE.FORBIDDEN,
+    });
+  });
+});
+
+describe("rollbackExecution", () => {
+  it("creates a rollback execution when recently authenticated", async () => {
+    const queue: RepairQueue = { enqueue: vi.fn(async () => {}) };
+    const svc = createRepairExecutionService(recoveryStore(), queue, noopAudit);
+    const ref = await svc.rollbackExecution(ctx("approver"), "src", "k", {
+      recentlyAuthenticated: true,
+    });
+    expect(ref).toEqual({ executionId: "rb-k", kind: "repair_rollback", status: "queued" });
+    expect(queue.enqueue).toHaveBeenCalledTimes(1);
+  });
+
+  it("is forbidden without a recent re-authentication", async () => {
+    const svc = createRepairExecutionService(recoveryStore(), { enqueue: vi.fn() }, noopAudit);
+    await expect(
+      svc.rollbackExecution(ctx("approver"), "src", "k", { recentlyAuthenticated: false }),
+    ).rejects.toMatchObject({ code: APP_ERROR_CODE.FORBIDDEN });
+  });
+
+  it("rejects when there is nothing to roll back", async () => {
+    const store = recoveryStore({
+      getRollbackTarget: async () => ({ planId: "p", reversibleItems: 0 }),
+    });
+    const svc = createRepairExecutionService(store, { enqueue: vi.fn() }, noopAudit);
+    await expect(
+      svc.rollbackExecution(ctx("approver"), "src", "k", { recentlyAuthenticated: true }),
+    ).rejects.toMatchObject({ code: APP_ERROR_CODE.VALIDATION });
+  });
+});
+
+describe("runRepairVerification (worker)", () => {
+  const instr = (id: string, after: string) => ({
+    productExternalId: id,
+    variantExternalId: null,
+    field: "onlineStoreUrl",
+    before: "http://x",
+    after,
+  });
+
+  function verificationFake(
+    items: { instruction: ReturnType<typeof instr>; status: "succeeded" | "failed" }[],
+  ) {
+    const persisted: import("@fixmyfeed/repairs").VerificationOutcome[] = [];
+    const repo: VerificationWorkerRepository = {
+      loadVerificationWork: async () => ({
+        planId: "plan",
+        outcome: {
+          items: items.map((i) => ({ ...i, error: null })),
+          total: items.length,
+          succeeded: items.filter((i) => i.status === "succeeded").length,
+          failed: items.filter((i) => i.status === "failed").length,
+          status: "completed",
+        },
+      }),
+      persistVerification: async (_e, _p, v) => {
+        persisted.push(v);
+      },
+    };
+    return { repo, persisted };
+  }
+
+  it("marks stuck writes verified and unstuck writes not-verified", async () => {
+    const { repo, persisted } = verificationFake([
+      { instruction: instr("a", "https://a"), status: "succeeded" },
+      { instruction: instr("b", "https://b"), status: "succeeded" },
+    ]);
+    // 'a' stuck (observed matches), 'b' reverted upstream (observed differs).
+    const observe: ObservePort = {
+      observe: async (i) => (i.productExternalId === "a" ? "https://a" : "http://x"),
+    };
+    const result = await runRepairVerification("exec", repo, observe, noopAudit, "u2");
+    expect(result?.verified).toBe(1);
+    expect(result?.failed).toBe(1);
+    expect(persisted[0]?.status).toBe("partially_completed");
+  });
+
+  it("keeps already-failed writes failed without observing them", async () => {
+    const { repo } = verificationFake([
+      { instruction: instr("boom", "https://boom"), status: "failed" },
+    ]);
+    const observe: ObservePort = { observe: vi.fn(async () => "anything") };
+    const result = await runRepairVerification("exec", repo, observe, noopAudit, "u2");
+    expect(result?.failed).toBe(1);
+    expect(result?.verified).toBe(0);
+    expect(observe.observe).not.toHaveBeenCalled();
+  });
+});
+
+describe("runRepairRollback (worker)", () => {
+  it("reverses verified items to their prior values", async () => {
+    const applied: { field: string; after: string }[] = [];
+    let persisted: { status: string; succeeded: number; failed: number } | null = null;
+    const repo: RollbackWorkerRepository = {
+      loadRollbackWork: async () => ({
+        planId: "plan",
+        items: [
+          {
+            productExternalId: "a",
+            variantExternalId: null,
+            field: "title",
+            afterValue: "New",
+            beforeValue: "Old",
+            status: "verified",
+          },
+        ],
+      }),
+      markRunning: vi.fn(async () => {}),
+      persistRollbackOutcome: async (_e, _p, outcome) => {
+        persisted = {
+          status: outcome.status,
+          succeeded: outcome.succeeded,
+          failed: outcome.failed,
+        };
+      },
+    };
+    await runRepairRollback(
+      "exec",
+      repo,
+      {
+        apply: async (i) => {
+          applied.push({ field: i.field, after: i.after });
+          return { ok: true, error: null };
+        },
+      },
+      noopAudit,
+      "u2",
+    );
+    // Restores the prior value ("Old") as the write target.
+    expect(applied).toEqual([{ field: "title", after: "Old" }]);
+    expect(persisted).toEqual({ status: "completed", succeeded: 1, failed: 0 });
   });
 });
