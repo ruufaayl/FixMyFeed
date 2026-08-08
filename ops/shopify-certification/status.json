@@ -1,0 +1,15 @@
+{
+  "epic": "E12 — Shopify Production Transport",
+  "ci_certified": true,
+  "live_dev_store_certified": false,
+  "writeback_safety_default": "dev_store_only",
+  "notes": [
+    "ci_certified: the deterministic certification harness (apps/web/tests/shopify-certification.test.ts) passes in CI, exercising the real port stack over a simulated Shopify transport across all required scenarios.",
+    "live_dev_store_certified: set to true ONLY after an owner completes tools/shopify-live-cert.mjs against a real Shopify development store (see LIVE_CERTIFICATION.md) and reviews the generated report.",
+    "Unrestricted production writeback (WRITEBACK_SAFETY_MODE=production) must remain disabled until live_dev_store_certified is true. Default stays dev_store_only."
+  ],
+  "supported_writeback_fields": {
+    "product": ["title", "descriptionHtml", "productType", "vendor"],
+    "variant": ["barcode", "sku", "price", "compareAtPrice"]
+  }
+}
