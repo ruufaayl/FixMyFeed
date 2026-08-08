@@ -155,6 +155,21 @@ async function readLiveValue(
   return { found: true, value: asString(data.product[field.shopifyField]) };
 }
 
+/**
+ * Fresh live read of the field's current Shopify value (for T162 verification /
+ * T161 conflict checks). Returns null for an unsupported field or a deleted /
+ * missing product — either way the value cannot be confirmed.
+ */
+export async function readShopifyFieldValue(
+  admin: ShopifyAdminClient,
+  instruction: WritebackInstruction,
+): Promise<string | null> {
+  const field = resolveField(instruction);
+  if (field === null) return null;
+  const live = await readLiveValue(admin, instruction, field);
+  return live.found ? live.value : null;
+}
+
 interface MutationResponse {
   readonly productUpdate?: { readonly userErrors?: readonly shopify.ShopifyUserError[] };
   readonly productVariantsBulkUpdate?: {

@@ -20,6 +20,7 @@ import {
   runRepairRollback,
   runRepairVerification,
   type AuditSink,
+  type ObservePort,
 } from "./repair-ops";
 import type { AppConfig } from "@fixmyfeed/config";
 import {
@@ -39,6 +40,7 @@ import {
   createShopifyWritebackPort,
   resolveWritebackEligibility,
 } from "./adapters/shopify-writeback-adapter";
+import { createShopifyObservePort } from "./adapters/shopify-observe-adapter";
 import type { WritebackPort } from "@fixmyfeed/repairs";
 
 const REPAIR_EXECUTE_EVENT = "repair.execute";
@@ -175,17 +177,21 @@ export function createRepairOutboxStore(client: DatabaseClient): RepairOutboxSto
 
 /**
  * Real worker ports. When the org has an active Shopify connection, destructive
- * work runs against the live Shopify Admin API (T161) gated by the server-side
- * writeback safety mode; otherwise it uses the catalog-store transport (the T159
- * path, used by CI/dev without a connection). The Shopify observe port lands in
- * T162 — until then verification re-reads the catalog store.
+ * work runs against the live Shopify Admin API (T161) — gated by the server-side
+ * writeback safety mode — and verification re-reads Shopify directly (T162,
+ * fresh read; success is never verification). Without a connection it uses the
+ * catalog-store transport (the T159 path, used by CI/dev).
  */
 export function createRepairWorkerPorts(
   client: DatabaseClient,
   config: AppConfig,
   audit: AuditSink = createAuditSink(client),
 ): RepairWorkerPorts {
-  async function runApplyWith(event: RepairOutboxEvent, writeback: WritebackPort): Promise<void> {
+  async function runApplyWith(
+    event: RepairOutboxEvent,
+    writeback: WritebackPort,
+    observe: ObservePort,
+  ): Promise<void> {
     await runRepairExecution(
       event.executionId,
       createWorkerRepository(client),
@@ -196,7 +202,7 @@ export function createRepairWorkerPorts(
     await runRepairVerification(
       event.executionId,
       createVerificationWorkerRepository(client),
-      createObservePort(client, event.organizationId),
+      observe,
       audit,
       event.principalUserId,
     );
@@ -214,14 +220,17 @@ export function createRepairWorkerPorts(
     );
   }
 
-  async function selectWritebackAndRun(
+  async function withTransport(
     event: RepairOutboxEvent,
-    run: (event: RepairOutboxEvent, writeback: WritebackPort) => Promise<void>,
+    run: (writeback: WritebackPort, observe: ObservePort) => Promise<void>,
   ): Promise<void> {
     const connection = await getActiveShopifyConnection(client, event.organizationId);
     if (connection === null) {
-      // No live connection: catalog-store transport (T159).
-      await run(event, createCatalogWritebackPort(client, event.organizationId));
+      // No live connection: catalog-store transport + catalog observe (T159).
+      await run(
+        createCatalogWritebackPort(client, event.organizationId),
+        createObservePort(client, event.organizationId),
+      );
       return;
     }
     await withShopifyAdminClient(client, config, event.organizationId, async (admin, ctx) => {
@@ -232,13 +241,15 @@ export function createRepairWorkerPorts(
       const writeback = eligibility.allowed
         ? createShopifyWritebackPort(admin, { executionId: event.executionId })
         : createRefusingWritebackPort(eligibility.reason);
-      await run(event, writeback);
+      // Verification always re-reads Shopify directly (fresh read).
+      await run(writeback, createShopifyObservePort(admin));
     });
   }
 
   return {
-    runApply: (event) => selectWritebackAndRun(event, runApplyWith),
-    runRollback: (event) => selectWritebackAndRun(event, runRollbackWith),
+    runApply: (event) =>
+      withTransport(event, (writeback, observe) => runApplyWith(event, writeback, observe)),
+    runRollback: (event) => withTransport(event, (writeback) => runRollbackWith(event, writeback)),
   };
 }
 
