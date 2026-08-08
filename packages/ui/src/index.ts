@@ -135,6 +135,12 @@ export { AssistedChange } from "./patterns/assisted-change.js";
 export type { AssistedChangeProps } from "./patterns/assisted-change.js";
 export { ConflictResolution, CONFLICT_REASONS } from "./patterns/conflict-resolution.js";
 export type { ConflictResolutionProps, ConflictReason } from "./patterns/conflict-resolution.js";
+export { RepairExceptions } from "./patterns/repair-exceptions.js";
+export type {
+  RepairExceptionsProps,
+  RepairExceptionItem,
+  ExceptionStatus,
+} from "./patterns/repair-exceptions.js";
 
 // Report card (T107).
 export { ReportCard } from "./patterns/reports.js";

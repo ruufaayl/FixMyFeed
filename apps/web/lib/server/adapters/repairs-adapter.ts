@@ -160,17 +160,22 @@ export function createRepairsRepository(client: DatabaseClient): RepairsReposito
             eq(repairExecutionItems.status, "failed"),
           ),
         );
-      return rows.map((r) => ({
-        itemId: r.itemId,
-        productExternalId: r.productExternalId,
-        variantExternalId: r.variantExternalId,
-        field: r.field,
-        status: "failed" as const,
-        error: r.error,
-        before: r.before,
-        after: r.after,
-        observed: null,
-      }));
+      return rows.map((r) => {
+        // Verification (T095) stores unstuck writes as `failed` with the sentinel
+        // error "not_verified"; hard writeback failures carry the real error.
+        const notVerified = r.error === "not_verified";
+        return {
+          itemId: r.itemId,
+          productExternalId: r.productExternalId,
+          variantExternalId: r.variantExternalId,
+          field: r.field,
+          status: (notVerified ? "not_verified" : "failed") as "not_verified" | "failed",
+          error: notVerified ? null : r.error,
+          before: r.before,
+          after: r.after,
+          observed: null,
+        };
+      });
     },
     async resolveChange(scope, planId, ref, value): Promise<void> {
       const [row] = await db

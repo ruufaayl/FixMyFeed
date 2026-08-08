@@ -8,7 +8,7 @@
  * injected in production and exercised end-to-end in T159 — its default refuses
  * to write rather than silently succeeding. All verified E2E in T159.
  */
-import type { CatalogProduct } from "@fixmyfeed/domain";
+import type { CatalogProduct, CatalogVariant } from "@fixmyfeed/domain";
 import {
   auditLogs,
   catalogProducts,
@@ -23,15 +23,26 @@ import {
   repairPlans,
   type DatabaseClient,
 } from "@fixmyfeed/database";
-import { buildChangeSetPreview, type RepairChange, type WritebackPort } from "@fixmyfeed/repairs";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import {
+  buildChangeSetPreview,
+  resolveExecutionStatus,
+  type ExecutionOutcome,
+  type RepairChange,
+  type RollbackSource,
+  type WritebackInstruction,
+  type WritebackPort,
+} from "@fixmyfeed/repairs";
+import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import type { ExecutionRefDTO, RepairPlanStatusDTO } from "../dto";
 import type {
   AuditSink,
   ExecutionStore,
   GovernanceRepository,
+  ObservePort,
   RepairAuditEvent,
   RepairQueue,
+  RollbackWorkerRepository,
+  VerificationWorkerRepository,
   WorkerRepository,
 } from "../repair-ops";
 import type { TenantScope } from "../tenant-scope";
@@ -230,7 +241,104 @@ export function createExecutionStore(client: DatabaseClient): ExecutionStore {
         status: row.status,
       };
     },
+    async getRetryTarget(scope, sourceExecutionId) {
+      const [exec] = await db
+        .select({ planId: repairExecutions.planId, failedItems: repairExecutions.failedItems })
+        .from(repairExecutions)
+        .where(
+          and(
+            eq(repairExecutions.organizationId, scope.organizationId),
+            eq(repairExecutions.id, sourceExecutionId),
+          ),
+        )
+        .limit(1);
+      if (!exec) return null;
+      return { planId: exec.planId, failedItems: exec.failedItems };
+    },
+    createRetryExecution: (scope, sourceExecutionId, idempotencyKey) =>
+      createRecoveryExecution(db, scope, "apply", sourceExecutionId, idempotencyKey),
+    async getRollbackTarget(scope, sourceExecutionId) {
+      const [exec] = await db
+        .select({ planId: repairExecutions.planId })
+        .from(repairExecutions)
+        .where(
+          and(
+            eq(repairExecutions.organizationId, scope.organizationId),
+            eq(repairExecutions.id, sourceExecutionId),
+          ),
+        )
+        .limit(1);
+      if (!exec) return null;
+      const rows = await db
+        .select({ id: repairExecutionItems.id })
+        .from(repairExecutionItems)
+        .where(
+          and(
+            eq(repairExecutionItems.organizationId, scope.organizationId),
+            eq(repairExecutionItems.executionId, sourceExecutionId),
+            eq(repairExecutionItems.status, "verified"),
+            isNotNull(repairExecutionItems.beforeValue),
+          ),
+        );
+      return { planId: exec.planId, reversibleItems: rows.length };
+    },
+    createRollbackExecution: (scope, sourceExecutionId, idempotencyKey) =>
+      createRecoveryExecution(db, scope, "rollback", sourceExecutionId, idempotencyKey),
   };
+}
+
+/**
+ * Idempotently creates a queued recovery execution (`apply` retry / `rollback`)
+ * linked to the source execution, mirroring the (org, idempotencyKey) dedupe of
+ * a first apply. Resolves the plan id from the source execution.
+ */
+async function createRecoveryExecution(
+  db: DatabaseClient["db"],
+  scope: TenantScope,
+  kind: "apply" | "rollback",
+  sourceExecutionId: string,
+  idempotencyKey: string,
+): Promise<{ executionId: string; created: boolean }> {
+  const [source] = await db
+    .select({ planId: repairExecutions.planId })
+    .from(repairExecutions)
+    .where(
+      and(
+        eq(repairExecutions.organizationId, scope.organizationId),
+        eq(repairExecutions.id, sourceExecutionId),
+      ),
+    )
+    .limit(1);
+  if (!source) return { executionId: "", created: false };
+  const inserted = await db
+    .insert(repairExecutions)
+    .values({
+      organizationId: scope.organizationId,
+      planId: source.planId,
+      kind,
+      sourceExecutionId,
+      idempotencyKey,
+      status: "queued",
+      totalItems: 0,
+    })
+    .onConflictDoNothing({
+      target: [repairExecutions.organizationId, repairExecutions.idempotencyKey],
+    })
+    .returning({ id: repairExecutions.id });
+  if (inserted.length > 0 && inserted[0]) {
+    return { executionId: inserted[0].id, created: true };
+  }
+  const [existing] = await db
+    .select({ id: repairExecutions.id })
+    .from(repairExecutions)
+    .where(
+      and(
+        eq(repairExecutions.organizationId, scope.organizationId),
+        eq(repairExecutions.idempotencyKey, idempotencyKey),
+      ),
+    )
+    .limit(1);
+  return { executionId: existing?.id ?? "", created: false };
 }
 
 /** Durable enqueue via the transactional outbox (job carries only the id). */
@@ -291,11 +399,34 @@ export function createWorkerRepository(client: DatabaseClient): WorkerRepository
   return {
     async loadExecutionWork(executionId) {
       const [exec] = await db
-        .select({ planId: repairExecutions.planId, status: repairExecutions.status })
+        .select({
+          planId: repairExecutions.planId,
+          status: repairExecutions.status,
+          sourceExecutionId: repairExecutions.sourceExecutionId,
+        })
         .from(repairExecutions)
         .where(eq(repairExecutions.id, executionId))
         .limit(1);
       if (!exec || (exec.status !== "queued" && exec.status !== "running")) return null;
+      // Retry: re-apply only the failed items of the source execution.
+      if (exec.sourceExecutionId) {
+        const items = await db
+          .select({
+            productExternalId: repairExecutionItems.productExternalId,
+            variantExternalId: repairExecutionItems.variantExternalId,
+            field: repairExecutionItems.field,
+            beforeValue: repairExecutionItems.beforeValue,
+            afterValue: repairExecutionItems.afterValue,
+          })
+          .from(repairExecutionItems)
+          .where(
+            and(
+              eq(repairExecutionItems.executionId, exec.sourceExecutionId),
+              eq(repairExecutionItems.status, "failed"),
+            ),
+          );
+        return { planId: exec.planId, changes: items.map(itemToRepairChange) };
+      }
       const [plan] = await db
         .select({ changeSet: repairPlans.changeSet })
         .from(repairPlans)
@@ -361,6 +492,259 @@ export function createWritebackPort(): WritebackPort {
   return {
     async apply() {
       return { ok: false, error: "writeback_transport_not_configured" };
+    },
+  };
+}
+
+/** A stored failed item → a minimal `RepairChange` for a retry writeback. */
+function itemToRepairChange(item: {
+  productExternalId: string;
+  variantExternalId: string | null;
+  field: string;
+  beforeValue: string | null;
+  afterValue: string | null;
+}): RepairChange {
+  return {
+    issueCode: "",
+    productExternalId: item.productExternalId,
+    variantExternalId: item.variantExternalId,
+    field: item.field,
+    safetyClass: "automatic",
+    riskLevel: "low",
+    currentValue: item.beforeValue,
+    proposedValue: item.afterValue,
+    requiresInput: false,
+  };
+}
+
+const asString = (value: unknown): string | null => (typeof value === "string" ? value : null);
+
+/** Re-reads a field's current value from a stored catalog product payload. */
+function readObservedField(
+  product: CatalogProduct,
+  instruction: WritebackInstruction,
+): string | null {
+  if (instruction.variantExternalId !== null) {
+    const variant = product.variants.find((v) => v.externalId === instruction.variantExternalId);
+    if (!variant) return null;
+    return asString(variant[instruction.field as keyof CatalogVariant]);
+  }
+  return asString(product[instruction.field as keyof CatalogProduct]);
+}
+
+/**
+ * Concrete `ObservePort` reading the field's current value from the stored
+ * catalog product payload (org-scoped). T159 swaps in a connector re-fetch for
+ * authoritative live observation; this reflects the last-imported catalog state.
+ */
+export function createObservePort(client: DatabaseClient, organizationId: string): ObservePort {
+  const db = client.db;
+  return {
+    async observe(instruction) {
+      const [row] = await db
+        .select({ payload: catalogProducts.payload })
+        .from(catalogProducts)
+        .where(
+          and(
+            eq(catalogProducts.organizationId, organizationId),
+            eq(catalogProducts.externalId, instruction.productExternalId),
+          ),
+        )
+        .limit(1);
+      if (!row) return null;
+      return readObservedField(row.payload as CatalogProduct, instruction);
+    },
+  };
+}
+
+/** Condition matching a stored item's (optional) variant id exactly. */
+function variantMatch(variantExternalId: string | null) {
+  return variantExternalId === null
+    ? isNull(repairExecutionItems.variantExternalId)
+    : eq(repairExecutionItems.variantExternalId, variantExternalId);
+}
+
+/**
+ * Verification worker repository (T095): reconstructs the apply outcome from the
+ * stored execution items, and persists per-item `verified`/`failed` statuses and
+ * the execution/plan status after verification.
+ */
+export function createVerificationWorkerRepository(
+  client: DatabaseClient,
+): VerificationWorkerRepository {
+  const db = client.db;
+  return {
+    async loadVerificationWork(executionId) {
+      const [exec] = await db
+        .select({ planId: repairExecutions.planId })
+        .from(repairExecutions)
+        .where(eq(repairExecutions.id, executionId))
+        .limit(1);
+      if (!exec) return null;
+      const rows = await db
+        .select({
+          productExternalId: repairExecutionItems.productExternalId,
+          variantExternalId: repairExecutionItems.variantExternalId,
+          field: repairExecutionItems.field,
+          beforeValue: repairExecutionItems.beforeValue,
+          afterValue: repairExecutionItems.afterValue,
+          status: repairExecutionItems.status,
+          error: repairExecutionItems.error,
+        })
+        .from(repairExecutionItems)
+        .where(eq(repairExecutionItems.executionId, executionId));
+      let succeeded = 0;
+      let failed = 0;
+      const items = rows.map((r) => {
+        const ok = r.status === "succeeded";
+        if (ok) succeeded += 1;
+        else failed += 1;
+        return {
+          instruction: {
+            productExternalId: r.productExternalId,
+            variantExternalId: r.variantExternalId,
+            field: r.field,
+            before: r.beforeValue,
+            after: r.afterValue ?? "",
+          },
+          status: (ok ? "succeeded" : "failed") as "succeeded" | "failed",
+          error: ok ? null : r.error,
+        };
+      });
+      const outcome: ExecutionOutcome = {
+        items,
+        total: items.length,
+        succeeded,
+        failed,
+        status: resolveExecutionStatus(succeeded, failed),
+      };
+      return { planId: exec.planId, outcome };
+    },
+    async persistVerification(executionId, planId, verification) {
+      for (const item of verification.items) {
+        await db
+          .update(repairExecutionItems)
+          .set({ status: item.status, error: item.error })
+          .where(
+            and(
+              eq(repairExecutionItems.executionId, executionId),
+              eq(repairExecutionItems.productExternalId, item.instruction.productExternalId),
+              eq(repairExecutionItems.field, item.instruction.field),
+              variantMatch(item.instruction.variantExternalId),
+            ),
+          );
+      }
+      await db
+        .update(repairExecutions)
+        .set({
+          status: verification.status,
+          succeededItems: verification.verified,
+          failedItems: verification.failed,
+          completedAt: new Date(),
+        })
+        .where(eq(repairExecutions.id, executionId));
+      const planStatus: RepairPlanStatusDTO =
+        verification.status === "completed"
+          ? "completed"
+          : verification.status === "partially_completed"
+            ? "partially_completed"
+            : "failed";
+      await db.update(repairPlans).set({ status: planStatus }).where(eq(repairPlans.id, planId));
+    },
+  };
+}
+
+/**
+ * Rollback worker repository (T096): loads the verified items of the source
+ * execution to reverse, and persists the rollback run's item/execution/plan
+ * statuses.
+ */
+export function createRollbackWorkerRepository(client: DatabaseClient): RollbackWorkerRepository {
+  const db = client.db;
+  return {
+    async loadRollbackWork(executionId) {
+      const [exec] = await db
+        .select({
+          planId: repairExecutions.planId,
+          status: repairExecutions.status,
+          sourceExecutionId: repairExecutions.sourceExecutionId,
+        })
+        .from(repairExecutions)
+        .where(eq(repairExecutions.id, executionId))
+        .limit(1);
+      if (
+        !exec ||
+        !exec.sourceExecutionId ||
+        (exec.status !== "queued" && exec.status !== "running")
+      ) {
+        return null;
+      }
+      const rows = await db
+        .select({
+          productExternalId: repairExecutionItems.productExternalId,
+          variantExternalId: repairExecutionItems.variantExternalId,
+          field: repairExecutionItems.field,
+          beforeValue: repairExecutionItems.beforeValue,
+          afterValue: repairExecutionItems.afterValue,
+        })
+        .from(repairExecutionItems)
+        .where(
+          and(
+            eq(repairExecutionItems.executionId, exec.sourceExecutionId),
+            eq(repairExecutionItems.status, "verified"),
+          ),
+        );
+      const items: RollbackSource[] = rows.map((r) => ({
+        productExternalId: r.productExternalId,
+        variantExternalId: r.variantExternalId,
+        field: r.field,
+        afterValue: r.afterValue,
+        beforeValue: r.beforeValue,
+        status: "verified",
+      }));
+      return { planId: exec.planId, items };
+    },
+    async markRunning(executionId) {
+      await db
+        .update(repairExecutions)
+        .set({ status: "running", startedAt: new Date() })
+        .where(eq(repairExecutions.id, executionId));
+    },
+    async persistRollbackOutcome(executionId, planId, outcome) {
+      const [exec] = await db
+        .select({ organizationId: repairExecutions.organizationId })
+        .from(repairExecutions)
+        .where(eq(repairExecutions.id, executionId))
+        .limit(1);
+      const organizationId = exec?.organizationId ?? "";
+      if (outcome.items.length > 0) {
+        await db.insert(repairExecutionItems).values(
+          outcome.items.map((item) => ({
+            organizationId,
+            executionId,
+            productExternalId: item.instruction.productExternalId,
+            variantExternalId: item.instruction.variantExternalId,
+            field: item.instruction.field,
+            beforeValue: item.instruction.before,
+            afterValue: item.instruction.after,
+            status: (item.status === "succeeded" ? "rolled_back" : "failed") as
+              "rolled_back" | "failed",
+            error: item.error,
+          })),
+        );
+      }
+      await db
+        .update(repairExecutions)
+        .set({
+          status: outcome.status,
+          totalItems: outcome.total,
+          succeededItems: outcome.succeeded,
+          failedItems: outcome.failed,
+          completedAt: new Date(),
+        })
+        .where(eq(repairExecutions.id, executionId));
+      const planStatus: RepairPlanStatusDTO = outcome.succeeded > 0 ? "rolled_back" : "failed";
+      await db.update(repairPlans).set({ status: planStatus }).where(eq(repairPlans.id, planId));
     },
   };
 }
