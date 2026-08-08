@@ -15,6 +15,7 @@
     "@fixmyfeed/auth": "workspace:*",
     "@fixmyfeed/config": "workspace:*",
     "@fixmyfeed/database": "workspace:*",
+    "@fixmyfeed/diagnostics": "workspace:*",
     "@fixmyfeed/domain": "workspace:*",
     "@fixmyfeed/repairs": "workspace:*",
     "@fixmyfeed/ui": "workspace:*",

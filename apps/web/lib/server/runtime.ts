@@ -31,15 +31,18 @@ import {
   createCatalogService,
   createIssuesService,
   createRepairsService,
+  createRepairRulesService,
   type OverviewService,
   type CatalogService,
   type IssuesService,
   type RepairsService,
+  type RepairRulesService,
 } from "./services";
 import { createOverviewRepository } from "./adapters/overview-adapter";
 import { createCatalogRepository } from "./adapters/catalog-adapter";
 import { createIssuesRepository } from "./adapters/issues-adapter";
 import { createRepairsRepository } from "./adapters/repairs-adapter";
+import { createRepairRulesRepository } from "./adapters/rules-adapter";
 import {
   createRepairGovernanceService,
   createRepairExecutionService,
@@ -176,6 +179,7 @@ interface AppServices {
   readonly catalog: CatalogService;
   readonly issues: IssuesService;
   readonly repairs: RepairsService;
+  readonly repairRules: RepairRulesService;
   readonly repairGovernance: RepairGovernanceService;
   readonly repairExecution: RepairExecutionService;
 }
@@ -191,6 +195,7 @@ export function services(): AppServices {
     catalog: createCatalogService(createCatalogRepository(client)),
     issues: createIssuesService(createIssuesRepository(client)),
     repairs: createRepairsService(createRepairsRepository(client)),
+    repairRules: createRepairRulesService(createRepairRulesRepository(client)),
     repairGovernance: createRepairGovernanceService(createGovernanceRepository(client), audit),
     repairExecution: createRepairExecutionService(
       createExecutionStore(client),

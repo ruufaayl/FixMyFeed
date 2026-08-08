@@ -33,6 +33,7 @@ const SECTIONS: NavSection[] = [
       { id: "catalog", label: "Catalog", href: "/catalog" },
       { id: "issues", label: "Issues", href: "/issues" },
       { id: "repairs", label: "Repairs", href: "/repairs" },
+      { id: "repair-rules", label: "Rules", href: "/repairs/rules" },
     ],
   },
   {

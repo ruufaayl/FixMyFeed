@@ -9,9 +9,11 @@
  * implement them in later tasks; tests inject fakes. No infrastructure type
  * crosses this boundary.
  */
+import { can, isRole, type Role } from "@fixmyfeed/domain";
 import type { AppContextDTO } from "./context";
 import { appError, normalizeError } from "./errors";
 import { resolveScope, type TenantScope } from "./tenant-scope";
+import { draftToDefinition } from "./adapters/rules-mappers";
 import {
   authoritative,
   derived,
@@ -38,7 +40,10 @@ import type {
   ProductInspectorDTO,
   RepairExceptionDTO,
   RepairPlanDTO,
+  RepairRuleDTO,
   ReportSummaryDTO,
+  RuleDraftDTO,
+  RuleSimulationDTO,
 } from "./dto";
 
 /** Runs `fn`, normalizing any thrown value into an AppError. */
@@ -48,6 +53,10 @@ async function guard<T>(fn: () => Promise<T>): Promise<T> {
   } catch (error) {
     throw normalizeError(error);
   }
+}
+
+function actorRoles(scope: TenantScope): Role[] {
+  return isRole(scope.role) ? [scope.role] : [];
 }
 
 // ── Overview ─────────────────────────────────────────────────────────────────
@@ -301,6 +310,103 @@ export function createRepairsService(repo: RepairsRepository): RepairsService {
         const scope = resolveScope(context, workspaceId);
         if (value.trim() === "") throw appError.validation("value is required");
         await repo.resolveChange(scope, planId, ref, value);
+      }),
+  };
+}
+
+// ── Repair rules (Rule Builder) ──────────────────────────────────────────────
+
+export interface RepairRulesRepository {
+  list(scope: TenantScope): Promise<readonly RepairRuleDTO[]>;
+  create(scope: TenantScope, draft: RuleDraftDTO): Promise<RepairRuleDTO>;
+  update(scope: TenantScope, ruleId: string, draft: RuleDraftDTO): Promise<RepairRuleDTO | null>;
+  setEnabled(scope: TenantScope, ruleId: string, enabled: boolean): Promise<boolean>;
+  remove(scope: TenantScope, ruleId: string): Promise<boolean>;
+  /** Dry-run: current enabled rules against the workspace's open issues. */
+  simulate(scope: TenantScope): Promise<RuleSimulationDTO>;
+}
+
+export interface RepairRulesService {
+  list(
+    context: AppContextDTO | null,
+    workspaceId?: string | null,
+  ): Promise<readonly RepairRuleDTO[]>;
+  create(
+    context: AppContextDTO | null,
+    draft: RuleDraftDTO,
+    workspaceId?: string | null,
+  ): Promise<RepairRuleDTO>;
+  update(
+    context: AppContextDTO | null,
+    ruleId: string,
+    draft: RuleDraftDTO,
+    workspaceId?: string | null,
+  ): Promise<RepairRuleDTO>;
+  setEnabled(
+    context: AppContextDTO | null,
+    ruleId: string,
+    enabled: boolean,
+    workspaceId?: string | null,
+  ): Promise<void>;
+  remove(context: AppContextDTO | null, ruleId: string, workspaceId?: string | null): Promise<void>;
+  simulate(context: AppContextDTO | null, workspaceId?: string | null): Promise<RuleSimulationDTO>;
+}
+
+/** Validates a draft's name + declarative definition, mapping to AppError. */
+function validateDraft(draft: RuleDraftDTO): void {
+  if (draft.name.trim() === "") throw appError.validation("Rule name is required");
+  if (draft.definition.conditions.length === 0) {
+    throw appError.validation("A rule needs at least one condition");
+  }
+  try {
+    draftToDefinition(draft); // deny-by-default validation of fields/operators/action
+  } catch (error) {
+    throw appError.validation("Invalid rule definition", {
+      reason: error instanceof Error ? error.message : "invalid",
+    });
+  }
+}
+
+export function createRepairRulesService(repo: RepairRulesRepository): RepairRulesService {
+  function requireManage(scope: TenantScope): void {
+    if (!can(actorRoles(scope), "rule:manage", { tenantScoped: true })) {
+      throw appError.forbidden("Not permitted to manage repair rules");
+    }
+  }
+  return {
+    list: (context, workspaceId) =>
+      guard(async () => repo.list(resolveScope(context, workspaceId))),
+    simulate: (context, workspaceId) =>
+      guard(async () => repo.simulate(resolveScope(context, workspaceId))),
+    create: (context, draft, workspaceId) =>
+      guard(async () => {
+        const scope = resolveScope(context, workspaceId);
+        requireManage(scope);
+        validateDraft(draft);
+        return repo.create(scope, draft);
+      }),
+    update: (context, ruleId, draft, workspaceId) =>
+      guard(async () => {
+        const scope = resolveScope(context, workspaceId);
+        requireManage(scope);
+        validateDraft(draft);
+        const updated = await repo.update(scope, ruleId, draft);
+        if (updated === null) throw appError.notFound("Rule not found");
+        return updated;
+      }),
+    setEnabled: (context, ruleId, enabled, workspaceId) =>
+      guard(async () => {
+        const scope = resolveScope(context, workspaceId);
+        requireManage(scope);
+        const ok = await repo.setEnabled(scope, ruleId, enabled);
+        if (!ok) throw appError.notFound("Rule not found");
+      }),
+    remove: (context, ruleId, workspaceId) =>
+      guard(async () => {
+        const scope = resolveScope(context, workspaceId);
+        requireManage(scope);
+        const ok = await repo.remove(scope, ruleId);
+        if (!ok) throw appError.notFound("Rule not found");
       }),
   };
 }
