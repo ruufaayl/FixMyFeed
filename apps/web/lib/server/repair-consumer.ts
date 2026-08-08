@@ -42,6 +42,7 @@ import {
 } from "./adapters/shopify-writeback-adapter";
 import { createShopifyObservePort } from "./adapters/shopify-observe-adapter";
 import { evaluateDestructiveBoundary, isExecutionPlanApproved } from "./adapters/writeback-guard";
+import { withBoundedRetry } from "./adapters/writeback-failures";
 import type { WritebackPort } from "@fixmyfeed/repairs";
 
 const REPAIR_EXECUTE_EVENT = "repair.execute";
@@ -248,7 +249,7 @@ export function createRepairWorkerPorts(
         approvedPlan,
       });
       const writeback = decision.allowed
-        ? createShopifyWritebackPort(admin, { executionId: event.executionId })
+        ? withBoundedRetry(createShopifyWritebackPort(admin, { executionId: event.executionId }))
         : createRefusingWritebackPort(decision.reason);
       // Verification always re-reads Shopify directly (fresh read).
       await run(writeback, createShopifyObservePort(admin));
