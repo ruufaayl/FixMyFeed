@@ -41,6 +41,7 @@ import {
   resolveWritebackEligibility,
 } from "./adapters/shopify-writeback-adapter";
 import { createShopifyObservePort } from "./adapters/shopify-observe-adapter";
+import { evaluateDestructiveBoundary, isExecutionPlanApproved } from "./adapters/writeback-guard";
 import type { WritebackPort } from "@fixmyfeed/repairs";
 
 const REPAIR_EXECUTE_EVENT = "repair.execute";
@@ -234,13 +235,21 @@ export function createRepairWorkerPorts(
       return;
     }
     await withShopifyAdminClient(client, config, event.organizationId, async (admin, ctx) => {
+      // Final destructive boundary: re-check safety, capability, scope, approval
+      // from authoritative state immediately before any live write (T163).
       const eligibility = await resolveWritebackEligibility(admin, ctx.shop, {
         mode: config.writeback.safetyMode,
         allowedShops: config.writeback.allowedShops,
       });
-      const writeback = eligibility.allowed
+      const approvedPlan = await isExecutionPlanApproved(client, event.executionId);
+      const decision = evaluateDestructiveBoundary({
+        eligibility,
+        scopes: ctx.scopes,
+        approvedPlan,
+      });
+      const writeback = decision.allowed
         ? createShopifyWritebackPort(admin, { executionId: event.executionId })
-        : createRefusingWritebackPort(eligibility.reason);
+        : createRefusingWritebackPort(decision.reason);
       // Verification always re-reads Shopify directly (fresh read).
       await run(writeback, createShopifyObservePort(admin));
     });
