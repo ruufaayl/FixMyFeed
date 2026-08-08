@@ -56,6 +56,9 @@ importers:
       '@fixmyfeed/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@fixmyfeed/diagnostics':
+        specifier: workspace:*
+        version: link:../../packages/diagnostics
       '@fixmyfeed/domain':
         specifier: workspace:*
         version: link:../../packages/domain

@@ -141,6 +141,16 @@ export type {
   RepairExceptionItem,
   ExceptionStatus,
 } from "./patterns/repair-exceptions.js";
+export { RuleBuilder } from "./patterns/rule-builder.js";
+export type {
+  RuleBuilderProps,
+  RuleBuilderValue,
+  RuleBuilderCondition,
+  RuleBuilderField,
+  RuleBuilderOperator,
+  RuleBuilderAction,
+  RuleBuilderMatch,
+} from "./patterns/rule-builder.js";
 
 // Report card (T107).
 export { ReportCard } from "./patterns/reports.js";

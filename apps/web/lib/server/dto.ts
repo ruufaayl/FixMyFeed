@@ -203,6 +203,57 @@ export interface RepairExceptionDTO {
   readonly observed: string | null;
 }
 
+// ── Repair rules (Rule Builder) ──────────────────────────────────────────────
+
+export type RuleFieldDTO = "code" | "severity" | "field";
+export type RuleOperatorDTO = "eq" | "in";
+export type RuleActionDTO = "auto_apply" | "flag" | "ignore";
+export type RuleMatchDTO = "all" | "any";
+
+export interface RuleConditionDTO {
+  readonly field: RuleFieldDTO;
+  readonly op: RuleOperatorDTO;
+  /** Always an array; `eq` carries one value, `in` carries several. */
+  readonly values: readonly string[];
+}
+
+export interface RuleDefinitionDTO {
+  readonly match: RuleMatchDTO;
+  readonly conditions: readonly RuleConditionDTO[];
+  readonly action: RuleActionDTO;
+}
+
+export interface RepairRuleDTO {
+  readonly id: string;
+  readonly name: string;
+  readonly enabled: boolean;
+  readonly priority: number;
+  readonly definition: RuleDefinitionDTO;
+}
+
+/** Client-supplied create/update payload for a rule. */
+export interface RuleDraftDTO {
+  readonly name: string;
+  readonly enabled: boolean;
+  readonly priority: number;
+  readonly definition: RuleDefinitionDTO;
+}
+
+export interface RuleSimulationEntryDTO {
+  readonly ruleId: string;
+  readonly ruleName: string;
+  readonly action: RuleActionDTO;
+  readonly matchedCount: number;
+  /** A few representative issue codes this rule matched (bounded). */
+  readonly sampleCodes: readonly string[];
+}
+
+export interface RuleSimulationDTO {
+  readonly entries: readonly RuleSimulationEntryDTO[];
+  readonly matchedIssues: number;
+  readonly totalIssues: number;
+}
+
 // ── Monitoring ───────────────────────────────────────────────────────────────
 
 export interface MonitoringMetricDTO {
