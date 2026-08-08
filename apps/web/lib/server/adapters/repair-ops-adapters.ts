@@ -496,6 +496,65 @@ export function createWritebackPort(): WritebackPort {
   };
 }
 
+/**
+ * Applies a writeback instruction to a stored catalog product payload (pure).
+ * Returns the updated payload and whether the target existed — a variant
+ * instruction whose variant is absent is a no-op (`applied: false`).
+ */
+export function applyInstructionToPayload(
+  payload: unknown,
+  instruction: WritebackInstruction,
+): { payload: Record<string, unknown>; applied: boolean } {
+  const next: Record<string, unknown> = { ...(payload as Record<string, unknown>) };
+  if (instruction.variantExternalId !== null) {
+    const source = Array.isArray(next.variants) ? (next.variants as Record<string, unknown>[]) : [];
+    const index = source.findIndex((v) => v.externalId === instruction.variantExternalId);
+    if (index === -1) return { payload: next, applied: false };
+    const variants = source.map((v) => ({ ...v }));
+    variants[index] = { ...variants[index], [instruction.field]: instruction.after };
+    next.variants = variants;
+    return { payload: next, applied: true };
+  }
+  next[instruction.field] = instruction.after;
+  return { payload: next, applied: true };
+}
+
+/**
+ * A `WritebackPort` that applies changes to the tenant's stored catalog product
+ * payload (the writeback "transport" for T159 E2E / test services). The paired
+ * `ObservePort` (`createObservePort`) then re-reads the same store to verify the
+ * change stuck. Production swaps a connector HTTP transport; the observe side
+ * becomes a connector re-fetch.
+ */
+export function createCatalogWritebackPort(
+  client: DatabaseClient,
+  organizationId: string,
+): WritebackPort {
+  const db = client.db;
+  return {
+    async apply(instruction) {
+      const [row] = await db
+        .select({ id: catalogProducts.id, payload: catalogProducts.payload })
+        .from(catalogProducts)
+        .where(
+          and(
+            eq(catalogProducts.organizationId, organizationId),
+            eq(catalogProducts.externalId, instruction.productExternalId),
+          ),
+        )
+        .limit(1);
+      if (!row) return { ok: false, error: "product_not_found" };
+      const result = applyInstructionToPayload(row.payload, instruction);
+      if (!result.applied) return { ok: false, error: "variant_not_found" };
+      await db
+        .update(catalogProducts)
+        .set({ payload: result.payload as typeof catalogProducts.$inferInsert.payload })
+        .where(eq(catalogProducts.id, row.id));
+      return { ok: true, error: null };
+    },
+  };
+}
+
 /** A stored failed item → a minimal `RepairChange` for a retry writeback. */
 function itemToRepairChange(item: {
   productExternalId: string;
