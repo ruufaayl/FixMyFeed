@@ -9,8 +9,14 @@
  * callback route completes the exchange. Discriminated result; never throws.
  */
 import { cookies } from "next/headers";
-import { getServerContext, shopifyInstallConfig, authSecret } from "@/lib/server/runtime";
+import {
+  getServerContext,
+  shopifyInstallConfig,
+  authSecret,
+  onboardingStatus,
+} from "@/lib/server/runtime";
 import { resolveScope } from "@/lib/server/tenant-scope";
+import type { OnboardingStatusDTO } from "@/lib/server/onboarding-run";
 import {
   beginShopifyInstall,
   signInstallState,
@@ -21,6 +27,21 @@ import { normalizeError, toErrorEnvelope, type AppErrorEnvelope } from "@/lib/se
 export type StartInstallResult =
   | { readonly ok: true; readonly url: string }
   | { readonly ok: false; readonly error: AppErrorEnvelope };
+
+export type OnboardingStatusResult =
+  | { readonly ok: true; readonly status: OnboardingStatusDTO }
+  | { readonly ok: false; readonly error: AppErrorEnvelope };
+
+/** Polls the connect→import→scan journey status for the current workspace. */
+export async function getOnboardingStatus(): Promise<OnboardingStatusResult> {
+  try {
+    const context = await getServerContext();
+    const scope = resolveScope(context);
+    return { ok: true, status: await onboardingStatus(scope.organizationId) };
+  } catch (error) {
+    return { ok: false, error: toErrorEnvelope(normalizeError(error)) };
+  }
+}
 
 export async function startShopifyInstall(shopDomain: string): Promise<StartInstallResult> {
   try {

@@ -10,8 +10,10 @@ import {
   getServerContext,
   shopifyInstallConfig,
   shopifyConnectionActive,
+  onboardingStatus,
 } from "@/lib/server/runtime";
 import { resolveScope } from "@/lib/server/tenant-scope";
+import type { OnboardingStatusDTO } from "@/lib/server/onboarding-run";
 import { OnboardingView } from "./onboarding-view";
 
 export const dynamic = "force-dynamic";
@@ -30,12 +32,17 @@ export default async function OnboardingPage() {
   }
   const shopifyConnected =
     organizationId !== null ? await shopifyConnectionActive(organizationId) : false;
+  const onboarding: OnboardingStatusDTO =
+    organizationId !== null
+      ? await onboardingStatus(organizationId)
+      : { state: "none", progress: 0, productCount: null, healthScore: null, issuesFound: null };
 
   return (
     <OnboardingView
       authenticated={organizationId !== null}
       shopifyConfigured={config.enabled && config.vaultReady}
       shopifyConnected={shopifyConnected}
+      onboarding={onboarding}
     />
   );
 }
