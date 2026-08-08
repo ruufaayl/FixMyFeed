@@ -14,6 +14,7 @@
   "dependencies": {
     "@fixmyfeed/auth": "workspace:*",
     "@fixmyfeed/config": "workspace:*",
+    "@fixmyfeed/connectors": "workspace:*",
     "@fixmyfeed/database": "workspace:*",
     "@fixmyfeed/diagnostics": "workspace:*",
     "@fixmyfeed/domain": "workspace:*",
