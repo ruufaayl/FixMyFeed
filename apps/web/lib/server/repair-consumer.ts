@@ -21,6 +21,7 @@ import {
   runRepairVerification,
   type AuditSink,
 } from "./repair-ops";
+import type { AppConfig } from "@fixmyfeed/config";
 import {
   createAuditSink,
   createCatalogWritebackPort,
@@ -29,6 +30,16 @@ import {
   createVerificationWorkerRepository,
   createWorkerRepository,
 } from "./adapters/repair-ops-adapters";
+import {
+  getActiveShopifyConnection,
+  withShopifyAdminClient,
+} from "./adapters/shopify-client-adapter";
+import {
+  createRefusingWritebackPort,
+  createShopifyWritebackPort,
+  resolveWritebackEligibility,
+} from "./adapters/shopify-writeback-adapter";
+import type { WritebackPort } from "@fixmyfeed/repairs";
 
 const REPAIR_EXECUTE_EVENT = "repair.execute";
 const DEFAULT_MAX_ATTEMPTS = 8;
@@ -162,47 +173,79 @@ export function createRepairOutboxStore(client: DatabaseClient): RepairOutboxSto
   };
 }
 
-/** Real worker ports: catalog-writeback transport + connector-backed observe. */
+/**
+ * Real worker ports. When the org has an active Shopify connection, destructive
+ * work runs against the live Shopify Admin API (T161) gated by the server-side
+ * writeback safety mode; otherwise it uses the catalog-store transport (the T159
+ * path, used by CI/dev without a connection). The Shopify observe port lands in
+ * T162 — until then verification re-reads the catalog store.
+ */
 export function createRepairWorkerPorts(
   client: DatabaseClient,
+  config: AppConfig,
   audit: AuditSink = createAuditSink(client),
 ): RepairWorkerPorts {
+  async function runApplyWith(event: RepairOutboxEvent, writeback: WritebackPort): Promise<void> {
+    await runRepairExecution(
+      event.executionId,
+      createWorkerRepository(client),
+      writeback,
+      audit,
+      event.principalUserId,
+    );
+    await runRepairVerification(
+      event.executionId,
+      createVerificationWorkerRepository(client),
+      createObservePort(client, event.organizationId),
+      audit,
+      event.principalUserId,
+    );
+  }
+  async function runRollbackWith(
+    event: RepairOutboxEvent,
+    writeback: WritebackPort,
+  ): Promise<void> {
+    await runRepairRollback(
+      event.executionId,
+      createRollbackWorkerRepository(client),
+      writeback,
+      audit,
+      event.principalUserId,
+    );
+  }
+
+  async function selectWritebackAndRun(
+    event: RepairOutboxEvent,
+    run: (event: RepairOutboxEvent, writeback: WritebackPort) => Promise<void>,
+  ): Promise<void> {
+    const connection = await getActiveShopifyConnection(client, event.organizationId);
+    if (connection === null) {
+      // No live connection: catalog-store transport (T159).
+      await run(event, createCatalogWritebackPort(client, event.organizationId));
+      return;
+    }
+    await withShopifyAdminClient(client, config, event.organizationId, async (admin, ctx) => {
+      const eligibility = await resolveWritebackEligibility(admin, ctx.shop, {
+        mode: config.writeback.safetyMode,
+        allowedShops: config.writeback.allowedShops,
+      });
+      const writeback = eligibility.allowed
+        ? createShopifyWritebackPort(admin, { executionId: event.executionId })
+        : createRefusingWritebackPort(eligibility.reason);
+      await run(event, writeback);
+    });
+  }
+
   return {
-    async runApply(event) {
-      const writeback = createCatalogWritebackPort(client, event.organizationId);
-      const observe = createObservePort(client, event.organizationId);
-      await runRepairExecution(
-        event.executionId,
-        createWorkerRepository(client),
-        writeback,
-        audit,
-        event.principalUserId,
-      );
-      await runRepairVerification(
-        event.executionId,
-        createVerificationWorkerRepository(client),
-        observe,
-        audit,
-        event.principalUserId,
-      );
-    },
-    async runRollback(event) {
-      const writeback = createCatalogWritebackPort(client, event.organizationId);
-      await runRepairRollback(
-        event.executionId,
-        createRollbackWorkerRepository(client),
-        writeback,
-        audit,
-        event.principalUserId,
-      );
-    },
+    runApply: (event) => selectWritebackAndRun(event, runApplyWith),
+    runRollback: (event) => selectWritebackAndRun(event, runRollbackWith),
   };
 }
 
 /** Convenience: process one batch with the concrete Drizzle store + real ports. */
-export function createRepairConsumer(client: DatabaseClient) {
+export function createRepairConsumer(client: DatabaseClient, config: AppConfig) {
   const store = createRepairOutboxStore(client);
-  const ports = createRepairWorkerPorts(client);
+  const ports = createRepairWorkerPorts(client, config);
   return {
     runOnce: (options?: RepairConsumerOptions) => runRepairOutboxOnce(store, ports, options),
   };

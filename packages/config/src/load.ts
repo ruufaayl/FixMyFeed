@@ -22,6 +22,7 @@ import {
   type ObjectStorageDriver,
   type LogLevel,
   type VarSpec,
+  type WritebackSafetyMode,
 } from "./schema.js";
 import { ConfigValidationError, type ConfigIssue } from "./errors.js";
 import {
@@ -254,7 +255,11 @@ export function loadConfig(
       stripeWebhookSecret: str("STRIPE_WEBHOOK_SECRET"),
     },
     publicTools: { enabled: bool("PUBLIC_TOOLS_ENABLED") ?? false },
-    writeback: { automatedEnabled: bool("AUTOMATED_WRITEBACK_ENABLED") ?? false },
+    writeback: {
+      automatedEnabled: bool("AUTOMATED_WRITEBACK_ENABLED") ?? false,
+      safetyMode: (str("WRITEBACK_SAFETY_MODE") ?? "dev_store_only") as WritebackSafetyMode,
+      allowedShops: parseShopList(str("WRITEBACK_ALLOWED_SHOPS")),
+    },
     ai: {
       assistanceEnabled: bool("AI_ASSISTANCE_ENABLED") ?? false,
       localModelBaseUrl: str("LOCAL_MODEL_BASE_URL") ?? "http://localhost:11434",
@@ -272,6 +277,15 @@ export function loadConfig(
   };
 
   return { config, features, redactedSummary: buildRedactedSummary(values) };
+}
+
+/** Splits a comma-separated shop allowlist into trimmed, lower-cased entries. */
+function parseShopList(raw: string | undefined): string[] {
+  if (raw === undefined || raw.trim() === "") return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter((s) => s.length > 0);
 }
 
 /** Builds a secret-safe summary: secrets become set/unset, others show values. */

@@ -211,6 +211,8 @@ This document is the implementation authority for Environment Variable Catalog. 
 | `STRIPE_WEBHOOK_SECRET` | string | Yes | Billing enabled | Empty | Required before webhook route accepts events. |
 | `PUBLIC_TOOLS_ENABLED` | boolean | No | Optional | `false` | Enable after abuse controls and SEO QA pass. |
 | `AUTOMATED_WRITEBACK_ENABLED` | boolean | No | Optional | `false` | Owner approval and connector scope required. |
+| `WRITEBACK_SAFETY_MODE` | enum | No | Always | `dev_store_only` | One of disabled/dev_store_only/allowlisted/production; explicit, never inferred from NODE_ENV; invalid values fail startup. |
+| `WRITEBACK_ALLOWED_SHOPS` | string | No | `allowlisted` mode | Empty | Comma-separated shop domains; allowlisted mode fails closed when empty. |
 | `AI_ASSISTANCE_ENABLED` | boolean | No | Optional | `false` | Does not affect core diagnostic or repair correctness. |
 | `LOCAL_MODEL_BASE_URL` | URL | No | Local model enabled | `http://localhost:11434` | Private-network endpoint only. |
 | `ANALYTICS_ENABLED` | boolean | No | Optional | `true` | First-party, consent-aware analytics only. |

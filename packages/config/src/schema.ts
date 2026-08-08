@@ -46,6 +46,18 @@ export interface VarSpec {
 
 export const NODE_ENVS = ["development", "test", "production"] as const;
 export const LOG_LEVELS = ["debug", "info", "warn", "error"] as const;
+
+/**
+ * Server-side writeback safety modes (E12). Governs which shops are eligible for
+ * destructive connector writeback. Never inferred from NODE_ENV — explicit only.
+ */
+export const WRITEBACK_SAFETY_MODES = [
+  "disabled",
+  "dev_store_only",
+  "allowlisted",
+  "production",
+] as const;
+export type WritebackSafetyMode = (typeof WRITEBACK_SAFETY_MODES)[number];
 export const OBJECT_STORAGE_DRIVERS = ["filesystem", "s3"] as const;
 
 /**
@@ -106,6 +118,14 @@ export const VARIABLES: readonly VarSpec[] = [
 
   { name: "PUBLIC_TOOLS_ENABLED", kind: "boolean", secret: false, default: "false" },
   { name: "AUTOMATED_WRITEBACK_ENABLED", kind: "boolean", secret: false, default: "false" },
+  {
+    name: "WRITEBACK_SAFETY_MODE",
+    kind: "enum",
+    secret: false,
+    default: "dev_store_only",
+    enumValues: WRITEBACK_SAFETY_MODES,
+  },
+  { name: "WRITEBACK_ALLOWED_SHOPS", kind: "string", secret: false },
   { name: "AI_ASSISTANCE_ENABLED", kind: "boolean", secret: false, default: "false" },
   {
     name: "LOCAL_MODEL_BASE_URL",
@@ -200,7 +220,13 @@ export interface AppConfig {
     readonly stripeWebhookSecret: string | undefined;
   };
   readonly publicTools: { readonly enabled: boolean };
-  readonly writeback: { readonly automatedEnabled: boolean };
+  readonly writeback: {
+    readonly automatedEnabled: boolean;
+    /** Which shops are eligible for destructive writeback (explicit; never inferred). */
+    readonly safetyMode: WritebackSafetyMode;
+    /** Normalized shop allowlist, used only when `safetyMode === "allowlisted"`. */
+    readonly allowedShops: readonly string[];
+  };
   readonly ai: { readonly assistanceEnabled: boolean; readonly localModelBaseUrl: string };
   readonly analytics: { readonly enabled: boolean };
   readonly logging: { readonly level: LogLevel };
