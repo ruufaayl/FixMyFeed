@@ -17,6 +17,7 @@ export {
   NODE_ENVS,
   LOG_LEVELS,
   OBJECT_STORAGE_DRIVERS,
+  WRITEBACK_SAFETY_MODES,
 } from "./schema.js";
 export type {
   AppConfig,
@@ -29,4 +30,5 @@ export type {
   ObjectStorageDriver,
   VarSpec,
   VarKind,
+  WritebackSafetyMode,
 } from "./schema.js";

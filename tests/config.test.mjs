@@ -37,13 +37,44 @@ function capture(fn) {
   return undefined;
 }
 
-test("catalog is closed and complete (43 variables, no duplicates)", () => {
-  assert.equal(VARIABLES.length, 43);
+test("catalog is closed and complete (45 variables, no duplicates)", () => {
+  assert.equal(VARIABLES.length, 45);
   const names = VARIABLES.map((v) => v.name);
   assert.equal(new Set(names).size, names.length, "variable names must be unique");
   for (const required of ["DATABASE_URL", "AUTH_SECRET", "NODE_ENV", "BILLING_ENABLED"]) {
     assert.ok(names.includes(required), `catalog missing ${required}`);
   }
+});
+
+test("writeback safety mode defaults to dev_store_only (never inferred)", () => {
+  const { config } = loadConfig(base(), WEB);
+  assert.equal(config.writeback.safetyMode, "dev_store_only");
+  assert.deepEqual(config.writeback.allowedShops, []);
+});
+
+test("writeback safety mode accepts all four explicit modes", () => {
+  for (const mode of ["disabled", "dev_store_only", "allowlisted", "production"]) {
+    const { config } = loadConfig(base({ WRITEBACK_SAFETY_MODE: mode }), WEB);
+    assert.equal(config.writeback.safetyMode, mode);
+  }
+});
+
+test("an invalid writeback safety mode fails startup", () => {
+  const err = capture(() => loadConfig(base({ WRITEBACK_SAFETY_MODE: "yolo" }), WEB));
+  assert.ok(err instanceof ConfigValidationError, "invalid enum must throw");
+});
+
+test("writeback allowlist is split, trimmed, and lower-cased", () => {
+  const { config } = loadConfig(
+    base({ WRITEBACK_ALLOWED_SHOPS: " Demo.myshopify.com , second.myshopify.com ,," }),
+    WEB,
+  );
+  assert.deepEqual(config.writeback.allowedShops, ["demo.myshopify.com", "second.myshopify.com"]);
+});
+
+test("the resolved safety mode appears in the redacted summary", () => {
+  const { redactedSummary } = loadConfig(base({ WRITEBACK_SAFETY_MODE: "production" }), WEB);
+  assert.equal(redactedSummary.WRITEBACK_SAFETY_MODE, "production");
 });
 
 test("primary: minimal valid env loads with documented defaults", () => {
