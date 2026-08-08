@@ -427,12 +427,22 @@ export interface MonitoringService {
     workspaceId?: string | null,
   ): Promise<MonitoringDTO>;
 }
+/** Defaults an open monitoring range to the last 30 days. */
+function resolveMonitoringRange(range: { from?: string; to?: string }): DateRange {
+  if (range.from && range.to) return validateDateRange(range);
+  const to = range.to ? new Date(range.to) : new Date();
+  const from = range.from
+    ? new Date(range.from)
+    : new Date(to.getTime() - 30 * 24 * 60 * 60 * 1000);
+  return validateDateRange({ from: from.toISOString(), to: to.toISOString() });
+}
+
 export function createMonitoringService(repo: MonitoringRepository): MonitoringService {
   return {
     getMonitoring: (context, range, workspaceId) =>
       guard(async () => {
         const scope = resolveScope(context, workspaceId);
-        const validated = validateDateRange(range);
+        const validated = resolveMonitoringRange(range);
         const record = await repo.loadMonitoring(scope, validated);
         return {
           metrics: record.metrics.map((m): MonitoringMetricDTO => ({
@@ -463,7 +473,15 @@ export interface ReportsService {
     context: AppContextDTO | null,
     workspaceId?: string | null,
   ): Promise<readonly ReportSummaryDTO[]>;
+  /** Exports the report summaries as CSV text. Requires `report:export`. */
+  exportCsv(context: AppContextDTO | null, workspaceId?: string | null): Promise<string>;
 }
+
+/** RFC-4180 CSV field: quote when it contains a comma, quote, or newline. */
+function csvField(value: string): string {
+  return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
 export function createReportsService(repo: ReportsRepository): ReportsService {
   return {
     listReports: (context, workspaceId) =>
@@ -476,6 +494,19 @@ export function createReportsService(repo: ReportsRepository): ReportsService {
           description: r.description,
           stat: derived(r.stat),
         }));
+      }),
+    exportCsv: (context, workspaceId) =>
+      guard(async () => {
+        const scope = resolveScope(context, workspaceId);
+        if (!can(actorRoles(scope), "report:export", { tenantScoped: true })) {
+          throw appError.forbidden("Not permitted to export reports");
+        }
+        const records = await repo.listReports(scope);
+        const rows = [
+          ["Report", "Description", "Value"],
+          ...records.map((r) => [r.title, r.description ?? "", r.stat]),
+        ];
+        return rows.map((cols) => cols.map(csvField).join(",")).join("\n");
       }),
   };
 }

@@ -32,17 +32,26 @@ import {
   createIssuesService,
   createRepairsService,
   createRepairRulesService,
+  createMonitoringService,
+  createReportsService,
+  createIntegrationsService,
   type OverviewService,
   type CatalogService,
   type IssuesService,
   type RepairsService,
   type RepairRulesService,
+  type MonitoringService,
+  type ReportsService,
+  type IntegrationsService,
 } from "./services";
 import { createOverviewRepository } from "./adapters/overview-adapter";
 import { createCatalogRepository } from "./adapters/catalog-adapter";
 import { createIssuesRepository } from "./adapters/issues-adapter";
 import { createRepairsRepository } from "./adapters/repairs-adapter";
 import { createRepairRulesRepository } from "./adapters/rules-adapter";
+import { createMonitoringRepository } from "./adapters/monitoring-adapter";
+import { createReportsRepository } from "./adapters/reports-adapter";
+import { createIntegrationsRepository } from "./adapters/integrations-adapter";
 import {
   createRepairGovernanceService,
   createRepairExecutionService,
@@ -182,6 +191,9 @@ interface AppServices {
   readonly repairRules: RepairRulesService;
   readonly repairGovernance: RepairGovernanceService;
   readonly repairExecution: RepairExecutionService;
+  readonly monitoring: MonitoringService;
+  readonly reports: ReportsService;
+  readonly integrations: IntegrationsService;
 }
 let servicesCache: AppServices | undefined;
 
@@ -202,6 +214,9 @@ export function services(): AppServices {
       createRepairQueue(client),
       audit,
     ),
+    monitoring: createMonitoringService(createMonitoringRepository(client)),
+    reports: createReportsService(createReportsRepository(client)),
+    integrations: createIntegrationsService(createIntegrationsRepository(client)),
   };
   return servicesCache;
 }
