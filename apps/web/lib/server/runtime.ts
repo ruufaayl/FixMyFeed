@@ -30,13 +30,16 @@ import {
   createOverviewService,
   createCatalogService,
   createIssuesService,
+  createRepairsService,
   type OverviewService,
   type CatalogService,
   type IssuesService,
+  type RepairsService,
 } from "./services";
 import { createOverviewRepository } from "./adapters/overview-adapter";
 import { createCatalogRepository } from "./adapters/catalog-adapter";
 import { createIssuesRepository } from "./adapters/issues-adapter";
+import { createRepairsRepository } from "./adapters/repairs-adapter";
 
 /** Minimal header accessor (accepts Next's ReadonlyHeaders and Headers). */
 interface HeaderReader {
@@ -136,6 +139,7 @@ interface AppServices {
   readonly overview: OverviewService;
   readonly catalog: CatalogService;
   readonly issues: IssuesService;
+  readonly repairs: RepairsService;
 }
 let servicesCache: AppServices | undefined;
 
@@ -145,5 +149,6 @@ export function services(): AppServices {
     overview: createOverviewService(createOverviewRepository(db())),
     catalog: createCatalogService(createCatalogRepository(db())),
     issues: createIssuesService(createIssuesRepository(db())),
+    repairs: createRepairsService(createRepairsRepository(db())),
   });
 }

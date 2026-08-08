@@ -232,9 +232,23 @@ export function createIssuesService(repo: IssuesRepository): IssuesService {
 
 // ── Repairs + repair exceptions ──────────────────────────────────────────────
 
+/** Identifies a single change within a plan. */
+export interface RepairChangeRef {
+  readonly productExternalId: string;
+  readonly field: string;
+}
+
 export interface RepairsRepository {
   getPlan(scope: TenantScope, planId: string): Promise<RepairPlanDTO | null>;
+  getLatestPlan(scope: TenantScope): Promise<RepairPlanDTO | null>;
   listExceptions(scope: TenantScope, executionId: string): Promise<readonly RepairExceptionDTO[]>;
+  /** Sets a change's proposed value and clears its needs-input flag. */
+  resolveChange(
+    scope: TenantScope,
+    planId: string,
+    ref: RepairChangeRef,
+    value: string,
+  ): Promise<void>;
 }
 export interface RepairsService {
   getPlan(
@@ -242,11 +256,24 @@ export interface RepairsService {
     planId: string,
     workspaceId?: string | null,
   ): Promise<RepairPlanDTO>;
+  /** The most recent plan for the workspace, or null when none exists. */
+  getLatestPlan(
+    context: AppContextDTO | null,
+    workspaceId?: string | null,
+  ): Promise<RepairPlanDTO | null>;
   listExceptions(
     context: AppContextDTO | null,
     executionId: string,
     workspaceId?: string | null,
   ): Promise<readonly RepairExceptionDTO[]>;
+  /** Applies an assisted value or a conflict resolution to a plan change. */
+  resolveChange(
+    context: AppContextDTO | null,
+    planId: string,
+    ref: RepairChangeRef,
+    value: string,
+    workspaceId?: string | null,
+  ): Promise<void>;
 }
 export function createRepairsService(repo: RepairsRepository): RepairsService {
   return {
@@ -259,10 +286,21 @@ export function createRepairsService(repo: RepairsRepository): RepairsService {
         }
         return plan;
       }),
+    getLatestPlan: (context, workspaceId) =>
+      guard(async () => {
+        const scope = resolveScope(context, workspaceId);
+        return repo.getLatestPlan(scope);
+      }),
     listExceptions: (context, executionId, workspaceId) =>
       guard(async () => {
         const scope = resolveScope(context, workspaceId);
         return repo.listExceptions(scope, executionId);
+      }),
+    resolveChange: (context, planId, ref, value, workspaceId) =>
+      guard(async () => {
+        const scope = resolveScope(context, workspaceId);
+        if (value.trim() === "") throw appError.validation("value is required");
+        await repo.resolveChange(scope, planId, ref, value);
       }),
   };
 }
