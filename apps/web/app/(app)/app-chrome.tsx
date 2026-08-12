@@ -29,7 +29,7 @@ const SECTIONS: NavSection[] = [
   {
     id: "product",
     items: [
-      { id: "overview", label: "Overview", href: "/" },
+      { id: "overview", label: "Overview", href: "/dashboard" },
       { id: "catalog", label: "Catalog", href: "/catalog" },
       { id: "issues", label: "Issues", href: "/issues" },
       { id: "repairs", label: "Repairs", href: "/repairs" },
@@ -50,9 +50,9 @@ const SECTIONS: NavSection[] = [
 const WORKSPACES: Workspace[] = [{ id: "demo", name: "Demo Store", kind: "shopify" }];
 
 function activeIdFor(pathname: string): string {
-  if (pathname === "/") return "overview";
   const segment = pathname.split("/")[1] ?? "";
-  return segment.length > 0 ? segment : "overview";
+  if (segment.length === 0 || segment === "dashboard") return "overview";
+  return segment;
 }
 
 export function AppChrome({ children }: { children: ReactNode }) {
@@ -96,7 +96,9 @@ export function AppChrome({ children }: { children: ReactNode }) {
       sections={SECTIONS}
       activeId={activeId}
       header={
-        <div className="px-1 text-[15px] font-semibold text-[var(--fmf-text)]">FixMyFeed</div>
+        <div className="px-1 text-[15px] font-bold tracking-[-0.02em] text-[var(--fmf-text)]">
+          <span className="text-[var(--fmf-brand)]">Fix</span>MyFeed
+        </div>
       }
       footer={<WorkspaceSwitcher />}
       renderLink={(item, className, children) => (

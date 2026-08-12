@@ -4,6 +4,13 @@
 /* Let Tailwind scan the design system's compiled class names. */
 @source "../../../packages/ui/dist";
 
+/* App-wide brand identity font (Plus Jakarta Sans via next/font). Overrides the
+   design-system default so the console and the marketing site share one voice. */
+:root {
+  --fmf-font-sans:
+    var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
 html,
 body {
   height: 100%;
