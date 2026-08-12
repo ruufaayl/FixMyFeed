@@ -19,6 +19,7 @@ import {
   type DatabaseClient,
 } from "@fixmyfeed/database";
 import { runDiagnosticScan, toDiagnosticIssueRow } from "@fixmyfeed/diagnostics";
+import { ConnectorError, computeConnectorBackoffMs } from "@fixmyfeed/connectors";
 import type { AppConfig } from "@fixmyfeed/config";
 import { and, desc, eq } from "drizzle-orm";
 import { createHash } from "node:crypto";
@@ -28,11 +29,15 @@ import {
   type OnboardingStatusDTO,
   type OnboardingStore,
 } from "../onboarding-run";
+import { paginateImport, type ProductPage } from "../catalog-import";
 import { withShopifyAdminClient } from "./shopify-client-adapter";
 
 const OPERATION_TYPE = "onboarding_import_scan";
 const ONBOARDING_EVENT = "onboarding.run";
-const IMPORT_PAGE_SIZE = 100;
+/** Shopify caps `products(first:)` at 250. */
+const IMPORT_PAGE_SIZE = 250;
+/** Bounded retries per page on a throttle (rate_limit). */
+const IMPORT_PAGE_RETRIES = 5;
 
 /** Schedules the onboarding run: a queued operation + an outbox job (ids only). */
 export async function scheduleOnboardingRun(
@@ -200,16 +205,18 @@ interface RawProductsPage {
         }>;
       };
     }>;
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
   };
 }
 
-const PRODUCTS_QUERY = `query($first: Int!) {
-  products(first: $first) {
+const PRODUCTS_QUERY = `query($first: Int!, $after: String) {
+  products(first: $first, after: $after) {
     nodes {
       id handle title descriptionHtml productType vendor status tags onlineStoreUrl
       images(first: 10) { nodes { id url altText } }
       variants(first: 50) { nodes { id sku barcode title price compareAtPrice } }
     }
+    pageInfo { hasNextPage endCursor }
   }
 }`;
 
@@ -281,30 +288,57 @@ export function createOnboardingPorts(
     return created!.id;
   }
 
+  async function upsertProducts(
+    catalogId: string,
+    products: readonly CatalogProduct[],
+  ): Promise<void> {
+    for (const product of products) {
+      const fp = fingerprint(product);
+      await db
+        .insert(catalogProducts)
+        .values({
+          organizationId,
+          catalogId,
+          externalId: product.externalId,
+          fingerprint: fp,
+          payload: product as unknown as typeof catalogProducts.$inferInsert.payload,
+        })
+        .onConflictDoUpdate({
+          target: [catalogProducts.catalogId, catalogProducts.externalId],
+          set: { fingerprint: fp, payload: product as never },
+        });
+    }
+  }
+
   return {
     async importCatalog() {
       return withShopifyAdminClient(client, config, organizationId, async (admin, ctx) => {
-        const data = await admin.graphql<RawProductsPage>(PRODUCTS_QUERY, {
-          first: IMPORT_PAGE_SIZE,
-        });
-        const products = data.products.nodes.map(toCatalogProduct);
         const catalogId = await ensureCatalogId(ctx.shop);
-        for (const product of products) {
-          await db
-            .insert(catalogProducts)
-            .values({
-              organizationId,
-              catalogId,
-              externalId: product.externalId,
-              fingerprint: fingerprint(product),
-              payload: product as unknown as typeof catalogProducts.$inferInsert.payload,
-            })
-            .onConflictDoUpdate({
-              target: [catalogProducts.catalogId, catalogProducts.externalId],
-              set: { fingerprint: fingerprint(product), payload: product as never },
-            });
-        }
-        return { productCount: products.length };
+        // One page at a time, retrying a throttled page with bounded backoff so a
+        // large catalog imports fully without a rate-limit failure aborting it.
+        const fetchPage = async (after: string | null): Promise<ProductPage> => {
+          for (let attempt = 1; ; attempt += 1) {
+            try {
+              const data = await admin.graphql<RawProductsPage>(PRODUCTS_QUERY, {
+                first: IMPORT_PAGE_SIZE,
+                after,
+              });
+              return {
+                products: data.products.nodes.map(toCatalogProduct),
+                hasNextPage: data.products.pageInfo.hasNextPage,
+                endCursor: data.products.pageInfo.endCursor,
+              };
+            } catch (error) {
+              const throttled = error instanceof ConnectorError && error.category === "rate_limit";
+              if (!throttled || attempt > IMPORT_PAGE_RETRIES) throw error;
+              await new Promise((r) => setTimeout(r, computeConnectorBackoffMs(attempt, error)));
+            }
+          }
+        };
+        const result = await paginateImport(fetchPage, (products) =>
+          upsertProducts(catalogId, products),
+        );
+        return { productCount: result.productCount };
       });
     },
     async runScan() {
